@@ -28,7 +28,7 @@ local IS_DEBUGGING: boolean = false
 
 for i = 1, 10 do
 	local collisionPart: BasePart = Instance.new('Part')
-	collisionPart.Transparency = 1
+	collisionPart.Transparency = .5
 	collisionPart.Material = Enum.Material.Neon
 	collisionPart.Color = Color3.fromRGB(52, 255, 0)
 	collisionPart.Anchored = true
