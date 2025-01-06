@@ -5,5 +5,5 @@ return {
 
 	MAX_CHUNK_LOADING_ACTORS = 24,
 	
-	BLOCK_SIZE = 3,
+	BLOCK_SIZE = 2.9,
 }

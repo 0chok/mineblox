@@ -26,12 +26,12 @@ local BLOCK_SIZE: number = ChunkSettings['BLOCK_SIZE']
 local AIR_ID: number = ItemsData['Air']['ID']
 
 local faceCfs = {
-	CFrame.new(Vector3.zero, Vector3.new(0, 0,  1))*CFrame.new(0,0,-1.5),
-	CFrame.new(Vector3.zero, Vector3.new(0, 0, -1))*CFrame.new(0,0,-1.5),
-	CFrame.new(Vector3.zero, Vector3.new( 1, 0, 0))*CFrame.new(0,0,-1.5),
-	CFrame.new(Vector3.zero, Vector3.new(-1, 0, 0))*CFrame.new(0,0,-1.5),
-	CFrame.new(Vector3.zero, Vector3.new(0,  1, 0))*CFrame.new(0,0,-1.5),
-	CFrame.new(Vector3.zero, Vector3.new(0, -1, 0))*CFrame.new(0,0,-1.5),
+	CFrame.new(Vector3.zero, Vector3.new(0, 0,  1))*CFrame.new(0,0,-BLOCK_SIZE*.5),
+	CFrame.new(Vector3.zero, Vector3.new(0, 0, -1))*CFrame.new(0,0,-BLOCK_SIZE*.5),
+	CFrame.new(Vector3.zero, Vector3.new( 1, 0, 0))*CFrame.new(0,0,-BLOCK_SIZE*.5),
+	CFrame.new(Vector3.zero, Vector3.new(-1, 0, 0))*CFrame.new(0,0,-BLOCK_SIZE*.5),
+	CFrame.new(Vector3.zero, Vector3.new(0,  1, 0))*CFrame.new(0,0,-BLOCK_SIZE*.5),
+	CFrame.new(Vector3.zero, Vector3.new(0, -1, 0))*CFrame.new(0,0,-BLOCK_SIZE*.5),
 }
 
 local BLOCK_NEIGHBOUR_VECTORS = 
@@ -49,7 +49,7 @@ local BLOCK_NEIGHBOUR_VECTORS =
 local function createFace(folder: Folder, blockId, faceId, x, z, y, chunkX, chunkZ, chunkY)
 	local faceCf = faceCfs[faceId]
 	local new = ReplicatedStorage.Face:Clone()
-	
+	new.Size = Vector3.new(BLOCK_SIZE, 0.001, BLOCK_SIZE)
 	new:PivotTo(CFrame.new((Vector3.new(x,y,z)+Vector3.new(chunkX, chunkY, chunkZ)*CHUNK_SIZE)*BLOCK_SIZE) * faceCf)
 	
 	new.Parent = folder
@@ -87,7 +87,7 @@ end
 function ChunkRenderer.renderChunk(chunkX: number, chunkZ: number, chunkY: number): ()	
 	local loadedChunkBlocks: buffer = ChunksData[chunkX][chunkZ][chunkY]['buffer']
 	
-	local folder = Instance.new("Folder")
+	local folder = Instance.new("Model")
 	folder.Name = `{chunkX}x{chunkZ}x{chunkY}`
 	folder.Parent = workspace.Chunks
 	
