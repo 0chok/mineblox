@@ -23,6 +23,10 @@
 
       "CollisionParts": {
         "$className": "Folder"
+      },
+
+      "Chunks": {
+        "$className": "Folder"
       }
     },
 
