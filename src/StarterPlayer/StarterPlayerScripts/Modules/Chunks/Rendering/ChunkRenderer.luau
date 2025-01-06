@@ -126,7 +126,7 @@ end
 
 
 function ChunkRenderer.unrenderChunk(chunkX: number, chunkZ: number, chunkY: number): ()
-	local chunk = workspace:FindFirstChild(`{chunkX}x{chunkZ}x{chunkY}`)
+	local chunk = workspace.Chunks:FindFirstChild(`{chunkX}x{chunkZ}x{chunkY}`)
 	if chunk then
 		chunk:Destroy()
 	end
