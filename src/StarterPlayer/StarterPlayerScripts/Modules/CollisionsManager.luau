@@ -7,6 +7,7 @@ local RunService = game:GetService('RunService')
 local Player: Player = Players.LocalPlayer
 local Character: Model = Player.Character or Player.CharacterAdded:Wait()
 local HumanoidRootPart: Part = Character:WaitForChild('HumanoidRootPart') :: Part
+local Humanoid: Humanoid = Character:WaitForChild('Humanoid') :: Humanoid
 local PlayerScripts = Player.PlayerScripts
 
 local Modules = PlayerScripts:WaitForChild('Modules')
@@ -110,6 +111,16 @@ local function updateCollisionParts(): ()
 	end
 end
 
+local function OnCharacterAdded(newCharacter)
+	Character = newCharacter
+	HumanoidRootPart = Character:WaitForChild('HumanoidRootPart') :: Part
+	Humanoid = Character:WaitForChild("Humanoid") :: Humanoid
+	Humanoid.WalkSpeed = 100
+	Humanoid.JumpPower = 100
+end
+
 RunService.PreRender:Connect(updateCollisionParts)
+
+Player.CharacterAdded:Connect(OnCharacterAdded)
 
 return CollisionsManager

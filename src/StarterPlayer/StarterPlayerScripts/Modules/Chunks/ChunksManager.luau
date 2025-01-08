@@ -35,7 +35,7 @@ local MAX_CHUNK_LOADING_ACTORS: number = ChunkSettings['MAX_CHUNK_LOADING_ACTORS
 local LOAD_OFFSET: number = 2
 
 local CHUNKS_TO_RENDER_PER_UPDATE: number = 1
-local CHUNKS_TO_LOAD_TERRAIN_PER_UPDATE: number = 7
+local CHUNKS_TO_LOAD_TERRAIN_PER_UPDATE: number = 9
 
 local AIR_ID: number = ItemsData['Air']['ID']
 local SEED: number = 500
@@ -47,7 +47,7 @@ local ChunkOffsetsToLoad: {{number}} = {}
 local CheckedChunkOffsetsToLoad = 0
 
 local ChunkOffsetsToRender: {{number}} = {}
-local CheckedChunkOffsetsToRender = 0
+--local CheckedChunkOffsetsToRender = 0
 
 local chunkLoadingActors: number = ClientSettings:GetAttribute('ChunkLoadingActors')
 local chunkLoadingActorsHalf: number = chunkLoadingActors // 2 -- Amount of biome and terrain actors seperately
@@ -413,8 +413,14 @@ end
 
 
 local function OnHeartBeat(): ()
-
-	if not HumanoidRootPart then return end
+	if not HumanoidRootPart or not HumanoidRootPart.Parent then
+		if not Player.Character then return end
+		Character = Player.Character
+		HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart") :: Part
+		if not HumanoidRootPart then return end
+	end
+	
+	print(HumanoidRootPart.Parent)
 	local characterPosition: Vector3 = HumanoidRootPart.Position
 	local newCharacterChunk = Vector3.new(
 		characterPosition.X // (CHUNK_SIZE * BLOCK_SIZE),
