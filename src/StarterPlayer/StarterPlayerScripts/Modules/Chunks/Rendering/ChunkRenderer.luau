@@ -16,11 +16,14 @@ local ChunksData = require(Modules.Chunks.Data.ChunksData)
 local ChunkSettings = require(ReplicatedStorage.Shared.ChunkSettings)
 local ChunksUtil = require(ReplicatedStorage.Shared.ChunksUtil)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
+local BlockFaceRecycler = require(ReplicatedStorage.Shared.BlockFaceRecycler)
 
 local CHUNK_SIZE: number = ChunkSettings['CHUNK_SIZE']
 local BLOCK_SIZE: number = ChunkSettings['BLOCK_SIZE']
 
 local AIR_ID: number = ItemsData['Air']['ID']
+
+local Chunks = {}
 
 local faceCfs = {
 	CFrame.new(Vector3.zero, Vector3.new(0, 0,  1))*CFrame.new(0,0,-BLOCK_SIZE*.5),
@@ -43,13 +46,16 @@ local BLOCK_NEIGHBOUR_VECTORS =
 
 -- PRIVATE
 
-local function createFace(folder: Folder, blockId, faceId, x, z, y, chunkX, chunkZ, chunkY)
+local function createFace(faceList: {}, blockId, faceId, x, z, y, chunkX, chunkZ, chunkY)
 	local faceCf = faceCfs[faceId]
-	local new = ReplicatedStorage.Face:Clone()
+	local new = BlockFaceRecycler.RequestFace()
+	table.insert(faceList, new)
+
+	new.Transparency = 0
 	new.Size = Vector3.new(BLOCK_SIZE, 0.001, BLOCK_SIZE)
 	new:PivotTo(CFrame.new((Vector3.new(x,y,z)+Vector3.new(chunkX, chunkY, chunkZ)*CHUNK_SIZE)*BLOCK_SIZE) * faceCf)
 	new.BrickColor = BrickColor.palette(blockId)
-	new.Parent = folder
+	
 end
 
 
@@ -84,10 +90,9 @@ end
 function ChunkRenderer.renderChunk(chunkX: number, chunkZ: number, chunkY: number): ()	
 	local loadedChunkBlocks: buffer = ChunksData[chunkX][chunkZ][chunkY]['buffer']
 	
-	local folder = Instance.new("Model")
-	folder.Name = `{chunkX}x{chunkZ}x{chunkY}`
-	folder.Parent = workspace.Chunks
-	
+	local faceList = {}
+	Chunks[`{chunkX}x{chunkZ}x{chunkY}`] = faceList
+
 	for x = 1, CHUNK_SIZE do
 		local bufferPositionX = (x - 1) * CHUNK_SIZE
 
@@ -109,22 +114,23 @@ function ChunkRenderer.renderChunk(chunkX: number, chunkZ: number, chunkY: numbe
 						continue
 					end
 					
-					createFace(folder, blockId, faceId, x, z, y, chunkX, chunkZ, chunkY)
+					createFace(faceList, blockId, faceId, x, z, y, chunkX, chunkZ, chunkY)
 				end
 			end
 		end
 	end
 
-	if #folder:GetChildren() == 0 then 
-		folder:Destroy()
+	if #faceList == 0 then 
+		Chunks[`{chunkX}x{chunkZ}x{chunkY}`] = nil
 	end
 end
 
 
 function ChunkRenderer.unrenderChunk(chunkX: number, chunkZ: number, chunkY: number): ()
-	local chunk = workspace.Chunks:FindFirstChild(`{chunkX}x{chunkZ}x{chunkY}`)
+	local chunk = Chunks[`{chunkX}x{chunkZ}x{chunkY}`]
 	if chunk then
-		chunk:Destroy()
+		BlockFaceRecycler.ReturnFaces(chunk)
+		Chunks[`{chunkX}x{chunkZ}x{chunkY}`] = nil
 	end
 end
 

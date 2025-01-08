@@ -420,7 +420,6 @@ local function OnHeartBeat(): ()
 		if not HumanoidRootPart then return end
 	end
 	
-	print(HumanoidRootPart.Parent)
 	local characterPosition: Vector3 = HumanoidRootPart.Position
 	local newCharacterChunk = Vector3.new(
 		characterPosition.X // (CHUNK_SIZE * BLOCK_SIZE),

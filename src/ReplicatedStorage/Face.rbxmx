@@ -107,7 +107,7 @@ QG8SgzoAAEBA]]></BinaryString>
 			<float name="TopParamB">0.5</float>
 			<token name="TopSurface">0</token>
 			<token name="TopSurfaceInput">0</token>
-			<float name="Transparency">0</float>
+			<float name="Transparency">1</float>
 			<Vector3 name="UnscaledCofm">
 				<X>NAN</X>
 				<Y>NAN</Y>
