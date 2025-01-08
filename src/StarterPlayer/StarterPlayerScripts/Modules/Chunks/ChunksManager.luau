@@ -30,22 +30,24 @@ local ClientSettings = PlayerScripts:WaitForChild('ClientSettings')
 local BLOCK_SIZE: number = ChunkSettings['BLOCK_SIZE']
 local CHUNK_SIZE: number = ChunkSettings['CHUNK_SIZE']
 local CHUNK_DISTANCE: number = ChunkSettings['CHUNK_DISTANCE']
-local MAX_CHUNK_DISTANCE: number = ChunkSettings['MAX_CHUNK_DISTANCE']
 local MAX_CHUNK_LOADING_ACTORS: number = ChunkSettings['MAX_CHUNK_LOADING_ACTORS']
 
 local LOAD_OFFSET: number = 2
 
-local CHUNKS_TO_RENDER_PER_UPDATE: number = 2
+local CHUNKS_TO_RENDER_PER_UPDATE: number = 1
 local CHUNKS_TO_LOAD_TERRAIN_PER_UPDATE: number = 7
-
-local FRAMES_BETWEEN_RENDERS: number = 1
-local FRAMES_BETWEEN_LOADS: number = 4
 
 local AIR_ID: number = ItemsData['Air']['ID']
 local SEED: number = 500
 
-local framesSinceLastRender: number = 0
-local framesSinceLastLoad: number = 0
+-- chunk finding
+local FocuesdChunk: Vector3 = nil
+
+local ChunkOffsetsToLoad: {{number}} = {}
+local CheckedChunkOffsetsToLoad = 0
+
+--local ChunkOffsetsToRender: {{chunkX: number, chunkZ: number, chunkY: number}}
+--local CheckedChunkOffsetsToRender = 0
 
 local chunkLoadingActors: number = ClientSettings:GetAttribute('ChunkLoadingActors')
 local chunkLoadingActorsHalf: number = chunkLoadingActors // 2 -- Amount of biome and terrain actors seperately
@@ -125,7 +127,6 @@ end
 
 -- Calls loadChunk() on every chunk to load
 local function loadChunks(toLoad: {}): ()
-	local chunksTerrainLoaded: number = 0
 	
 	local chunksToLoadTerrain = {}
 	local chunksToLoadBiome = {}
@@ -134,18 +135,14 @@ local function loadChunks(toLoad: {}): ()
 		local chunkX: number = chunk[1]
 		local chunkZ: number = chunk[2]
 		local chunkY: number = chunk[3]
-		
+
 		if ChunksData[chunkX][chunkZ][chunkY]['stage'] == ChunkGenerationStages['none'] then
-			if chunksTerrainLoaded > CHUNKS_TO_LOAD_TERRAIN_PER_UPDATE then
-				continue
-			end
 			ChunksData[chunkX][chunkZ][chunkY]['isLoading'] = true
 			
 			table.insert(chunksToLoadTerrain, chunk)
 			
-			chunksTerrainLoaded += 1
-			
 		elseif ChunksData[chunkX][chunkZ][chunkY]['stage'] == ChunkGenerationStages['terrain'] then
+			print("what")
 			if -- Neighbours' terrain must be loaded
 				not ChunksData[chunkX][chunkZ][chunkY - 1]
 				or ChunksData[chunkX][chunkZ][chunkY - 1]['stage'] == ChunkGenerationStages['none']
@@ -187,19 +184,15 @@ end
 
 -- Returns chunks to render
 local function findChunksToRender(): {}
-	local characterPosition: Vector3 = HumanoidRootPart.Position
-	local characterPositionChunkX: number = characterPosition.X // (CHUNK_SIZE * BLOCK_SIZE)
-	local characterPositionChunkZ: number = characterPosition.Z // (CHUNK_SIZE * BLOCK_SIZE)
-	local characterPositionChunkY: number = characterPosition.Y // (CHUNK_SIZE * BLOCK_SIZE)
 	
 	local toRender = {}
-	for chunkX = characterPositionChunkX - CHUNK_DISTANCE, characterPositionChunkX + CHUNK_DISTANCE do
-		local chunkXDistance = (chunkX - characterPositionChunkX) ^ 2
-		for chunkZ = characterPositionChunkZ - CHUNK_DISTANCE, characterPositionChunkZ + CHUNK_DISTANCE do
-			local chunkZDistance = (chunkZ - characterPositionChunkZ) ^ 2
-			for chunkY = characterPositionChunkY - CHUNK_DISTANCE, characterPositionChunkY + CHUNK_DISTANCE do
+	for chunkX = FocuesdChunk.X - CHUNK_DISTANCE, FocuesdChunk.X + CHUNK_DISTANCE do
+		local chunkXDistance = (chunkX - FocuesdChunk.X) ^ 2
+		for chunkZ = FocuesdChunk.Z - CHUNK_DISTANCE, FocuesdChunk.Z + CHUNK_DISTANCE do
+			local chunkZDistance = (chunkZ - FocuesdChunk.Z) ^ 2
+			for chunkY = FocuesdChunk.Y - CHUNK_DISTANCE, FocuesdChunk.Y + CHUNK_DISTANCE do
 				-- All neighbours must be fully loaded
-				local distance = chunkXDistance + chunkZDistance + (chunkY - characterPositionChunkY) ^ 2
+				local distance = chunkXDistance + chunkZDistance + (chunkY - FocuesdChunk.Y) ^ 2
 				if 
 					distance > CHUNK_DISTANCE * CHUNK_DISTANCE
 					or not ChunksData[chunkX]
@@ -250,25 +243,21 @@ end
 
 -- Returns chunks to unrender
 local function findChunksToUnrender(): {} --TODO not good has issues
-	local characterPosition: Vector3 = HumanoidRootPart.Position
-	local characterPositionChunkX: number = characterPosition.X // (CHUNK_SIZE * BLOCK_SIZE)
-	local characterPositionChunkZ: number = characterPosition.Z // (CHUNK_SIZE * BLOCK_SIZE)
-	local characterPositionChunkY: number = characterPosition.Y // (CHUNK_SIZE * BLOCK_SIZE)
 
 	local safeChunks = {}
 	
 	local radius = CHUNK_DISTANCE + 1
 	
-	for chunkX = characterPositionChunkX - radius, characterPositionChunkX + radius do
+	for chunkX = FocuesdChunk.X - radius, FocuesdChunk.X + radius do
 		safeChunks[chunkX] = {}
-		local chunkXDistance = (chunkX - characterPositionChunkX) ^ 2
+		local chunkXDistance = (chunkX - FocuesdChunk.X) ^ 2
 
-		for chunkZ = characterPositionChunkZ - radius, characterPositionChunkZ + radius do
+		for chunkZ = FocuesdChunk.Z - radius, FocuesdChunk.Z + radius do
 			safeChunks[chunkX][chunkZ] = {}
-			local chunkZDistance = (chunkZ - characterPositionChunkZ) ^ 2
+			local chunkZDistance = (chunkZ - FocuesdChunk.Z) ^ 2
 
-			for chunkY = characterPositionChunkY - radius, characterPositionChunkY + radius do
-				local distance = chunkXDistance + chunkZDistance + (chunkY - characterPositionChunkY) ^ 2
+			for chunkY = FocuesdChunk.Y - radius, FocuesdChunk.Y + radius do
+				local distance = chunkXDistance + chunkZDistance + (chunkY - FocuesdChunk.Y) ^ 2
 				if distance <= radius * radius then
 					safeChunks[chunkX][chunkZ][chunkY] = true
 				end
@@ -299,85 +288,81 @@ end
 
 
 -- Returns the closest chunks to the character which arent loaded
-local function findChunksToLoad(): {}
-	local characterPosition: Vector3 = HumanoidRootPart.Position
-	local characterPositionChunkX: number = characterPosition.X // (CHUNK_SIZE * BLOCK_SIZE)
-	local characterPositionChunkZ: number = characterPosition.Z // (CHUNK_SIZE * BLOCK_SIZE)
-	local characterPositionChunkY: number = characterPosition.Y // (CHUNK_SIZE * BLOCK_SIZE)
-
+local function findChunksToLoad()
 	local toLoad = {}
-	local radius = CHUNK_DISTANCE + LOAD_OFFSET
 
-	for chunkX = characterPositionChunkX - radius, characterPositionChunkX + radius do
-		local chunkXDistance = (chunkX - characterPositionChunkX) ^ 2
-		for chunkZ = characterPositionChunkZ - radius, characterPositionChunkZ + radius do
-			local chunkZDistance = (chunkZ - characterPositionChunkZ) ^ 2
-			for chunkY = characterPositionChunkY - radius, characterPositionChunkY + radius do
-				
-				local distance = chunkXDistance + chunkZDistance + (chunkY - characterPositionChunkY) ^ 2
-				if
-					ChunksData[chunkX] 
-					and ChunksData[chunkX][chunkZ] 
-					and ChunksData[chunkX][chunkZ][chunkY]
-				then
-					local chunkData = ChunksData[chunkX][chunkZ][chunkY]
-					if 
-						chunkData['stage'] == ChunkGenerationStages['done']
-						or chunkData['isLoading']
-						or (chunkData['stage'] == ChunkGenerationStages['terrain']
-						and distance > (radius - 1) * (radius - 1))
-					then
-						continue
-					end
-				end
-					
-				if
-					math.abs(chunkX) > MAX_CHUNK_DISTANCE
-					or math.abs(chunkY) > MAX_CHUNK_DISTANCE
-					or math.abs(chunkZ) > MAX_CHUNK_DISTANCE
-					or distance > radius * radius
-				then
-					continue 
-				end
-				
-				table.insert(toLoad, {chunkX, chunkZ, chunkY})
-				if
-					not ChunksData[chunkX] 
-					or not ChunksData[chunkX][chunkZ] 
-					or not ChunksData[chunkX][chunkZ][chunkY]
-				then
-					ChunksUtil.fillChunksTable(ChunksData, chunkX, chunkZ, chunkY)
-					ChunksData[chunkX][chunkZ][chunkY]['stage'] = ChunkGenerationStages['none']
-				end
-			end
+	while #toLoad < CHUNKS_TO_LOAD_TERRAIN_PER_UPDATE and CheckedChunkOffsetsToLoad < #ChunkOffsetsToLoad do
+		CheckedChunkOffsetsToLoad += 1
+		
+		local chunkX = ChunkOffsetsToLoad[CheckedChunkOffsetsToLoad][1] + FocuesdChunk.X
+		local chunkZ = ChunkOffsetsToLoad[CheckedChunkOffsetsToLoad][2] + FocuesdChunk.Z
+		local chunkY = ChunkOffsetsToLoad[CheckedChunkOffsetsToLoad][3] + FocuesdChunk.Y
+
+		if
+			not ChunksData[chunkX] 
+			or not ChunksData[chunkX][chunkZ] 
+			or not ChunksData[chunkX][chunkZ][chunkY]
+		then
+		ChunksUtil.fillChunksTable(ChunksData, chunkX, chunkZ, chunkY)
+		ChunksData[chunkX][chunkZ][chunkY]['stage'] = ChunkGenerationStages['none']
 		end
+
+		local chunkData = ChunksData[chunkX][chunkZ][chunkY]
+		if chunkData['stage'] == ChunkGenerationStages['done'] then continue end -- we dont want to load loaded chunks!
+		if chunkData['stage'] == chunkData['isLoading'] then error("this is necessary actually") end
+			
+		table.insert(toLoad, {chunkX, chunkZ, chunkY})
 	end
 	return toLoad
 end
 
+local function GenerateChunkOffsetsToLoad()
+	local radius = CHUNK_DISTANCE + LOAD_OFFSET
+	local radiusFloor = math.floor(radius)
+
+	local chunkOffsetsToLoadUnsorted = {}
+
+	for chunkX = -radiusFloor, radiusFloor do
+		local chunkXDistance = chunkX ^ 2
+		for chunkZ = -radiusFloor, radiusFloor do
+			local chunkZDistance = chunkZ ^ 2
+			for chunkY = -radiusFloor, radiusFloor do
+				local distanceSquared = chunkXDistance + chunkZDistance + chunkY ^ 2
+				if distanceSquared > radius^2 then continue end
+				
+				table.insert(chunkOffsetsToLoadUnsorted, {distanceSquared,{chunkX, chunkZ, chunkY}})
+			end
+		end
+	end
+
+	table.sort(chunkOffsetsToLoadUnsorted, function(a0: {number}, a1: {number}): boolean 
+		return a0[1] < a1[1]
+	end)
+
+	for _, v in chunkOffsetsToLoadUnsorted do
+		table.insert(ChunkOffsetsToLoad, v[2])
+	end
+
+end
 
 -- Returns chunks not within character's range
 local function unloadChunks(): ()
-	local characterPosition: Vector3 = HumanoidRootPart.Position
-	local characterPositionChunkX: number = characterPosition.X // (CHUNK_SIZE * BLOCK_SIZE)
-	local characterPositionChunkZ: number = characterPosition.Z // (CHUNK_SIZE * BLOCK_SIZE)
-	local characterPositionChunkY: number = characterPosition.Y // (CHUNK_SIZE * BLOCK_SIZE)
 
 	local shouldBeLoaded = {}
 	
 	-- Find what chunks should be loaded
 	local radius = CHUNK_DISTANCE + LOAD_OFFSET + 1
 
-	for chunkX = characterPositionChunkX - radius, characterPositionChunkX + radius do
+	for chunkX = FocuesdChunk.X - radius, FocuesdChunk.X + radius do
 		shouldBeLoaded[chunkX] = {}
-		local chunkXDistance = (chunkX - characterPositionChunkX) ^ 2
+		local chunkXDistance = (chunkX - FocuesdChunk.X) ^ 2
 		
-		for chunkZ = characterPositionChunkZ - radius, characterPositionChunkZ + radius do
+		for chunkZ = FocuesdChunk.Z - radius, FocuesdChunk.Z + radius do
 			shouldBeLoaded[chunkX][chunkZ] = {}
-			local chunkZDistance = (chunkZ - characterPositionChunkZ) ^ 2
+			local chunkZDistance = (chunkZ - FocuesdChunk.Z) ^ 2
 			
-			for chunkY = characterPositionChunkY - radius, characterPositionChunkY + radius do
-				local distance = chunkXDistance + chunkZDistance + (chunkY - characterPositionChunkY) ^ 2
+			for chunkY = FocuesdChunk.Y - radius, FocuesdChunk.Y + radius do
+				local distance = chunkXDistance + chunkZDistance + (chunkY - FocuesdChunk.Y) ^ 2
 				if distance <= radius * radius then
 					shouldBeLoaded[chunkX][chunkZ][chunkY] = true
 				end
@@ -394,6 +379,9 @@ local function unloadChunks(): ()
 					or not shouldBeLoaded[chunkX][chunkZ]
 					or not shouldBeLoaded[chunkX][chunkZ][chunkY]
 				then
+					if ChunksData[chunkX][chunkZ][chunkY]["isRendered"] then 
+						ChunkRenderer.unrenderChunk(chunkX, chunkZ, chunkY)
+					end
 					ChunksData[chunkX][chunkZ][chunkY] = nil
 				end
 			end
@@ -404,14 +392,10 @@ end
 
 -- Reorders table of chunks based on distance from player
 local function reorderChunkPriority(chunks: {}): {}
-	local characterPosition: Vector3 = HumanoidRootPart.Position
-	local characterPositionChunkX: number = characterPosition.X // (CHUNK_SIZE * BLOCK_SIZE)
-	local characterPositionChunkZ: number = characterPosition.Z // (CHUNK_SIZE * BLOCK_SIZE)
-	local characterPositionChunkY: number = characterPosition.Y // (CHUNK_SIZE * BLOCK_SIZE)
 	
 	table.sort(chunks, function(a, b)
-		local aDistance = (a[1] - characterPositionChunkX) ^ 2 + (a[2] - characterPositionChunkZ) ^ 2 + (a[3] - characterPositionChunkY) ^ 2
-		local bDistance = (b[1] - characterPositionChunkX) ^ 2 + (b[2] - characterPositionChunkZ) ^ 2 + (b[3] - characterPositionChunkY) ^ 2
+		local aDistance = (a[1] - FocuesdChunk.X) ^ 2 + (a[2] - FocuesdChunk.Z) ^ 2 + (a[3] - FocuesdChunk.Y) ^ 2
+		local bDistance = (b[1] - FocuesdChunk.X) ^ 2 + (b[2] - FocuesdChunk.Z) ^ 2 + (b[3] - FocuesdChunk.Y) ^ 2
 		return aDistance < bDistance
 	end)
 	return chunks
@@ -419,74 +403,85 @@ end
 
 
 local function handleFrame(): ()
-	framesSinceLastLoad += 1
-	framesSinceLastRender += 1
-	if not HumanoidRootPart then
-		return
+
+	if not HumanoidRootPart then return end
+	local characterPosition: Vector3 = HumanoidRootPart.Position
+	local newCharacterChunk = Vector3.new(
+		characterPosition.X // (CHUNK_SIZE * BLOCK_SIZE),
+		characterPosition.Y // (CHUNK_SIZE * BLOCK_SIZE),
+		characterPosition.Z // (CHUNK_SIZE * BLOCK_SIZE)
+	)
+	
+	if FocuesdChunk ~= newCharacterChunk then
+		print(FocuesdChunk,newCharacterChunk)
+		FocuesdChunk = newCharacterChunk
+		CheckedChunkOffsetsToLoad = 0
 	end
-	debug.profilebegin("loadUnloadChunks")
-	if framesSinceLastLoad >= FRAMES_BETWEEN_LOADS then
-		debug.profilebegin("findChunksToLoad")
-		local chunksToLoad = findChunksToLoad()
-		debug.profileend()
-		debug.profilebegin("reorderChunkPriority")
-		reorderChunkPriority(chunksToLoad)
-		debug.profileend()
-		--print(chunksToLoad)
-		--[[local chunk = chunksToLoad[1]
-		local x = chunk[1]
-		local z = chunk[2]
-		local y = chunk[3]
-		
-		print(x, z, y, ChunksData[x][z][y])]]
-		debug.profilebegin("loadChunks")
-		loadChunks(chunksToLoad)
-		debug.profileend()
-		debug.profilebegin("unloadChunks")
-		unloadChunks()
-		debug.profileend()
-		framesSinceLastLoad = 0
-		return
-	end
+
+	-- unrendering
+	debug.profilebegin("chunkrendering")
+
+	debug.profilebegin("findChunksToUnrender")
+	local ChunksToUnrender = findChunksToUnrender()
 	debug.profileend()
 
+	debug.profilebegin("reorderChunkPriority")
+	reorderChunkPriority(ChunksToUnrender)
+	debug.profileend()
+
+	debug.profilebegin("unerenderChunks")
+	unrenderChunks(ChunksToUnrender)
+	debug.profileend()
+
+	debug.profileend()
+
+	--rendering
 	debug.profilebegin("chunkrendering")
-	if framesSinceLastRender >= FRAMES_BETWEEN_RENDERS then
-		debug.profilebegin("findChunksToRender")
-		local chunksToRender = findChunksToRender()
-		debug.profileend()
-		debug.profilebegin("reorderChunkPriority")
-		reorderChunkPriority(chunksToRender)
-		debug.profileend()
-		debug.profilebegin("renderChunks")
-		renderChunks(chunksToRender)
-		debug.profileend()
-		
-		debug.profilebegin("findChunksToUnrender")
-		local ChunksToUnrender = findChunksToUnrender()
-		debug.profileend()
-		debug.profilebegin("reorderChunkPriority")
-		reorderChunkPriority(ChunksToUnrender)
-		debug.profileend()
-		debug.profilebegin("unerenderChunks")
-		unrenderChunks(ChunksToUnrender)
-		framesSinceLastRender = 0
-		debug.profileend()
-	end
+
+	debug.profilebegin("findChunksToRender")
+	local chunksToRender = findChunksToRender()
+	debug.profileend()
+
+	debug.profilebegin("reorderChunkPriority")
+	reorderChunkPriority(chunksToRender)
+	debug.profileend()
+
+	debug.profilebegin("renderChunks")
+	renderChunks(chunksToRender)
+	debug.profileend()
+
+	debug.profileend()
+
+	-- loading
+	debug.profilebegin("loadUnloadChunks")
+
+	debug.profilebegin("findChunksToLoad")
+	local chunksToLoad = findChunksToLoad()
+	debug.profileend()
+
+	debug.profilebegin("loadChunks")
+	loadChunks(chunksToLoad)
+	debug.profileend()
+
+	debug.profilebegin("unloadChunks")
+	unloadChunks()
+	debug.profileend()
+
 	debug.profileend()
 end
 
 local function handleChunkLoadedTerrain(chunkX: number, chunkZ: number, chunkY: number, chunkBlocks: buffer)
 	ChunksData[chunkX][chunkZ][chunkY]['buffer'] = chunkBlocks
-	ChunksData[chunkX][chunkZ][chunkY]['stage'] = ChunkGenerationStages['terrain']
+	ChunksData[chunkX][chunkZ][chunkY]['stage'] = ChunkGenerationStages['done']--['terrain'] temp disabled biome step
 	ChunksData[chunkX][chunkZ][chunkY]['isLoading'] = false
 end
 
 local function handleChunkLoadedBiome(chunkX: number, chunkZ: number, chunkY: number, chunkBlocks: buffer, neighbouringChunks: {})
+	print("bla")
 	ChunksData[chunkX][chunkZ][chunkY]['buffer'] = chunkBlocks
 	ChunksData[chunkX][chunkZ][chunkY]['stage'] = ChunkGenerationStages['done']
 	ChunksData[chunkX][chunkZ][chunkY]['isLoading'] = false
-	print("bla")
+	
 	--[[
 	
 	for neighbouringChunkString, neighbouringChunkNewBuffer  in neighbouringChunks do
@@ -504,9 +499,7 @@ local function handleChunkLoadedBiome(chunkX: number, chunkZ: number, chunkY: nu
 				for y = 1, CHUNK_SIZE do
 					local oldBlockId: number = buffer.readu8(neighbouringChunkOldBuffer, bufferPositionX + bufferPositionZ + (y - 1))
 					local newBlockId: number = buffer.readu8(neighbouringChunkNewBuffer, bufferPositionX + bufferPositionZ + (y - 1))
-					if oldBlockId == newBlockId then
-						continue
-					end
+
 					buffer.writeu8(neighbouringChunkOldBuffer, bufferPositionX + bufferPositionZ + (y - 1), newBlockId)
 				end
 			end
@@ -515,12 +508,24 @@ local function handleChunkLoadedBiome(chunkX: number, chunkZ: number, chunkY: nu
 end
 
 -- EVENTS
-
 RunService.Heartbeat:Connect(handleFrame)
 
 Events.ChunkLoadedTerrain.Event:Connect(handleChunkLoadedTerrain)
 Events.ChunkLoadedBiome.Event:Connect(handleChunkLoadedBiome)
 
 ClientSettings:GetAttributeChangedSignal('ChunkLoadingActors'):Connect(onChunkLoadingActorsChanged)
+
+-- INIT
+GenerateChunkOffsetsToLoad()
+--print(#ChunkOffsetsToLoad)
+--print(ChunkOffsetsToLoad[1])
+--print(ChunkOffsetsToLoad[7000])
+
+task.spawn(function()
+--	while true do
+		task.wait(5)
+		print(ChunksData)
+--	end
+end)
 
 return ChunkLoading

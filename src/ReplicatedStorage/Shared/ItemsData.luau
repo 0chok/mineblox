@@ -84,7 +84,6 @@ function _init()
 		
 		itemsData[itemName]['ID'] = itemID
 	end
-	print(itemsData)
 end
 
 -- Init
