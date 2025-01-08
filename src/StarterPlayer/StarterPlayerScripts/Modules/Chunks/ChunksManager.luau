@@ -19,6 +19,7 @@ local ChunkGenerationStages = require(Modules.Chunks.Data.ChunkGenerationStages)
 local ChunkSettings = require(ReplicatedStorage.Shared.ChunkSettings)
 local ChunksUtil = require(ReplicatedStorage.Shared.ChunksUtil)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
+local BlockFaceRecycler = require(ReplicatedStorage.Shared.BlockFaceRecycler)
 
 local ParallelScripts = PlayerScripts:WaitForChild('ParallelScripts')
 
@@ -47,7 +48,7 @@ local ChunkOffsetsToLoad: {{number}} = {}
 local CheckedChunkOffsetsToLoad = 0
 
 local ChunkOffsetsToRender: {{number}} = {}
---local CheckedChunkOffsetsToRender = 0
+local CheckedChunkOffsetsToRender = 0
 
 local chunkLoadingActors: number = ClientSettings:GetAttribute('ChunkLoadingActors')
 local chunkLoadingActorsHalf: number = chunkLoadingActors // 2 -- Amount of biome and terrain actors seperately
@@ -180,7 +181,7 @@ end
 -- Returns chunks to render
 local function FindChunksToRender(): {}
 	local toLoad = {}
-	local CheckedChunkOffsetsToRender = 0
+
 	while #toLoad < CHUNKS_TO_RENDER_PER_UPDATE and CheckedChunkOffsetsToRender < #ChunkOffsetsToRender do
 		CheckedChunkOffsetsToRender += 1
 		
@@ -200,7 +201,7 @@ local function FindChunksToRender(): {}
 		if --check that adjacent chunks are loaded
 			ChunksData[chunkX][chunkZ][chunkY]['isRendered'] == true
 		then continue end
-		--print(1)
+
 		if
 			   not ChunksData[chunkX][chunkZ + 1]
 			or not ChunksData[chunkX][chunkZ - 1]
@@ -208,8 +209,8 @@ local function FindChunksToRender(): {}
 			or not ChunksData[chunkX + 1][chunkZ]
 			or not ChunksData[chunkX - 1]
 			or not ChunksData[chunkX - 1][chunkZ]
-		then continue end
-		--print(2)
+		then return {} end
+
 		if
 			   not ChunksData[chunkX + 1][chunkZ][chunkY]
 			or     ChunksData[chunkX + 1][chunkZ][chunkY]['stage'] ~= ChunkGenerationStages['done']
@@ -228,19 +229,19 @@ local function FindChunksToRender(): {}
 			
 			or not ChunksData[chunkX][chunkZ][chunkY - 1]
 			or     ChunksData[chunkX][chunkZ][chunkY - 1]['stage'] ~= ChunkGenerationStages['done']
-		then continue end
+		then return {} end
 
-		local isAllAir: boolean = true
-		local chunkBlocks: buffer = ChunksData[chunkX][chunkZ][chunkY]['buffer']
-		for i = 1, CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE do
-			if buffer.readu8(chunkBlocks, i) ~= AIR_ID then
-				isAllAir = false
-				break
-			end
-		end
-		if isAllAir then
-			--continue -- TODO fix the bug
-		end
+		--local isAllAir: boolean = true
+		--local chunkBlocks: buffer = ChunksData[chunkX][chunkZ][chunkY]['buffer']
+		--for i = 1, CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE do
+		--	if buffer.readu8(chunkBlocks, i) ~= AIR_ID then
+		--		isAllAir = false
+		--		break
+		--	end
+		--end
+		--if isAllAir then
+		--	--continue -- TODO fix the bug
+		--end
 
 		table.insert(toLoad, {chunkX, chunkZ, chunkY})
 	end
@@ -413,6 +414,14 @@ end
 
 
 local function OnHeartBeat(): ()
+	if BlockFaceRecycler.GetStoredFacesCount() < 250 then -- could be done on separate thread in the future ?
+		debug.profilebegin("CreateStoredFaces")
+		BlockFaceRecycler.CreateStoredFaces(50)
+		debug.profileend()
+		return
+	end
+
+	if workspace:GetAttribute("a") then return end
 	if not HumanoidRootPart or not HumanoidRootPart.Parent then
 		if not Player.Character then return end
 		Character = Player.Character
@@ -427,27 +436,30 @@ local function OnHeartBeat(): ()
 		characterPosition.Z // (CHUNK_SIZE * BLOCK_SIZE)
 	)
 	
+	local changedChunk = false
 	if FocuesdChunk ~= newCharacterChunk then
 		FocuesdChunk = newCharacterChunk
 		CheckedChunkOffsetsToLoad = 0
+		CheckedChunkOffsetsToRender = 0
+		changedChunk = true
 	end
 
 	-- unrendering
-	debug.profilebegin("chunkrendering")
+	--debug.profilebegin("chunkUNrendering")
 
-	debug.profilebegin("findChunksToUnrender")
-	local ChunksToUnrender = FindChunksToUnrender()
-	debug.profileend()
+	--debug.profilebegin("findChunksToUnrender")
+	--local ChunksToUnrender = FindChunksToUnrender()
+	--debug.profileend()
 
-	debug.profilebegin("reorderChunkPriority")
-	reorderChunkPriority(ChunksToUnrender)
-	debug.profileend()
+	--debug.profilebegin("reorderChunkPriority")
+	--reorderChunkPriority(ChunksToUnrender)
+	--debug.profileend()
 
-	debug.profilebegin("unerenderChunks")
-	UnrenderChunks(ChunksToUnrender)
-	debug.profileend()
+	--debug.profilebegin("unerenderChunks")
+	--UnrenderChunks(ChunksToUnrender)
+	--debug.profileend()
 
-	debug.profileend()
+	--debug.profileend()
 
 	--rendering
 	debug.profilebegin("chunkrendering")
@@ -461,6 +473,10 @@ local function OnHeartBeat(): ()
 	debug.profileend()
 
 	debug.profileend()
+
+	-- dont do the first "Finds" for a new chunk on the same frame to conserve frame budget
+	-- rendering is done first just to make it one more frame responsive
+	if changedChunk == true then return end 
 
 	-- loading
 	debug.profilebegin("loadUnloadChunks")

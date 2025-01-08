@@ -47,7 +47,7 @@ end
 task.spawn(function()
     while true do
         task.wait(3)
-        --print(CreatedFaces, #StoredFaces)
+        print(CreatedFaces, #StoredFaces)
     end
 end)
 
