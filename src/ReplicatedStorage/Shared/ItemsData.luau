@@ -62,146 +62,12 @@ local itemsData = {
 	Glass = {
 		isTransparent = true,
 	},
-
-	['Coal Ore'] = {
-		Hardness = 30,
-		PreferredTool = 'Pickaxe',
-		DropItem = 'Coal',
-		Type = 'Block',
-	},
-
-	['Gold Ore'] = {
-		Hardness = 30,
-		PreferredTool = 'Pickaxe',
-		DropItem = 'Raw Gold',
-		Type = 'Block',
-	},
-
-	['Iron Ore'] = {
-		Hardness = 30,
-		PreferredTool = 'Pickaxe',
-		DropItem = 'Raw Iron',
-		Type = 'Block',
-	},
-
-	['Diamond Ore'] = {
-		Hardness = 30,
-		PreferredTool = 'Pickaxe',
-		DropItem = 'Diamond',
-		Type = 'Block',
-	},
-
-	['Wooden Pickaxe'] = {
-		Type = 'Pickaxe',
-	},
-
-	Dandelion = {
-		Hardness = 0,
-		Type = 'Plant',
-	},
 	
 	Grass = {
 		Hardness = 0,
 		Type = 'Plant',
-	},
-
-	['Oxeye Daisy'] = {
-		Hardness = 0,
-		Type = 'Plant',
-	},
+	}
 	
-	Poppy = {
-		Hardness = 0,
-		Type = 'Plant',
-	},
-	
-	Clay = {
-		Hardness = 6,
-		PreferredTool = 'Shovel',
-		Type = 'Block',
-	},
-	
-	Gravel = {
-		Hardness = 6,
-		PreferredTool = 'Shovel',
-		Type = 'Block',
-	},
-	
-	['Raw Iron'] = {
-		Type = 'Ore'
-	},
-	
-	['Diamond'] = {
-		Type = 'Ore'
-	},
-	
-	['Coal'] = {
-		Type = 'Ore'
-	},
-	
-	['Iron Ingot'] = {
-		Type = 'Ore'
-	},
-	
-	['Wooden Sword'] = {
-		Type = 'Sword',
-	},
-	
-	['Stone Sword'] = {
-		Type = 'Sword',
-	},
-	
-	['Iron Sword'] = {
-		Type = 'Sword',
-	},
-	
-	['Diamond Sword'] = {
-		Type = 'Sword',
-	},
-	
-	['Stone Pickaxe'] = {
-		Type = 'Pickaxe',
-	},
-	
-	['Iron Pickaxe'] = {
-		Type = 'Pickaxe',
-	},
-	
-	['Diamond Pickaxe'] = {
-		Type = 'Pickaxe',
-	},
-
-	['Wooden Axe'] = {
-		Type = 'Axe',
-	},
-
-	['Stone Axe'] = {
-		Type = 'Axe',
-	},
-
-	['Iron Axe'] = {
-		Type = 'Axe',
-	},
-
-	['Diamond Axe'] = {
-		Type = 'Axe',
-	},
-	
-	['Wooden Shovel'] = {
-		Type = 'Shovel',
-	},
-
-	['Stone Shovel'] = {
-		Type = 'Shovel',
-	},
-
-	['Iron Shovel'] = {
-		Type = 'Shovel',
-	},
-
-	['Diamond Shovel'] = {
-		Type = 'Shovel',
-	},
 }
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -218,6 +84,7 @@ function _init()
 		
 		itemsData[itemName]['ID'] = itemID
 	end
+	print(itemsData)
 end
 
 -- Init
