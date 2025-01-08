@@ -1,3 +1,0 @@
-local SpaghettiCavesGenerator = {}
-
-return SpaghettiCavesGenerator

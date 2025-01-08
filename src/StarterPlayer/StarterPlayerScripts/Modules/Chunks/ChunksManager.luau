@@ -159,12 +159,14 @@ local function loadChunks(toLoad: {}): ()
 	end
 	
 	task.defer(function()
+		local i = 0
 		for _, chunk in chunksToLoadTerrain do
 			local chunkX: number = chunk[1]
 			local chunkZ: number = chunk[2]
 			local chunkY: number = chunk[3]
 			
-			terrainActors[math.random(1, chunkLoadingActorsHalf)]:SendMessage('beginLoading', chunkX, chunkZ, chunkY, SEED)
+			terrainActors[i+1]:SendMessage('beginLoading', chunkX, chunkZ, chunkY, SEED)
+			i = (i+1)%chunkLoadingActorsHalf
 		end
 		
 		for _, chunk in chunksToLoadBiome do
@@ -177,7 +179,8 @@ local function loadChunks(toLoad: {}): ()
 				[chunkX .. 'x' .. chunkZ .. 'x' .. chunkY - 1] = ChunksData[chunkX][chunkZ][chunkY - 1]['buffer']
 			}
 			
-			biomeActors[math.random(1, chunkLoadingActorsHalf)]:SendMessage('beginLoading', chunkX, chunkZ, chunkY, chunkBlocks, neighbouringChunks, SEED)
+			biomeActors[i+1]:SendMessage('beginLoading', chunkX, chunkZ, chunkY, chunkBlocks, neighbouringChunks, SEED)
+			i = (i+1)%chunkLoadingActorsHalf
 		end
 	end)
 end
@@ -295,7 +298,7 @@ local function findChunksToUnrender(): {} --TODO not good has issues
 end
 
 
--- Returns the closest chunks to the character
+-- Returns the closest chunks to the character which arent loaded
 local function findChunksToLoad(): {}
 	local characterPosition: Vector3 = HumanoidRootPart.Position
 	local characterPositionChunkX: number = characterPosition.X // (CHUNK_SIZE * BLOCK_SIZE)
@@ -354,7 +357,7 @@ end
 
 
 -- Returns chunks not within character's range
-local function unloadChunks(chunksToLoad: {}): ()
+local function unloadChunks(): ()
 	local characterPosition: Vector3 = HumanoidRootPart.Position
 	local characterPositionChunkX: number = characterPosition.X // (CHUNK_SIZE * BLOCK_SIZE)
 	local characterPositionChunkZ: number = characterPosition.Z // (CHUNK_SIZE * BLOCK_SIZE)
@@ -421,10 +424,14 @@ local function handleFrame(): ()
 	if not HumanoidRootPart then
 		return
 	end
-	
+	debug.profilebegin("loadUnloadChunks")
 	if framesSinceLastLoad >= FRAMES_BETWEEN_LOADS then
+		debug.profilebegin("findChunksToLoad")
 		local chunksToLoad = findChunksToLoad()
+		debug.profileend()
+		debug.profilebegin("reorderChunkPriority")
 		reorderChunkPriority(chunksToLoad)
+		debug.profileend()
 		--print(chunksToLoad)
 		--[[local chunk = chunksToLoad[1]
 		local x = chunk[1]
@@ -432,23 +439,41 @@ local function handleFrame(): ()
 		local y = chunk[3]
 		
 		print(x, z, y, ChunksData[x][z][y])]]
+		debug.profilebegin("loadChunks")
 		loadChunks(chunksToLoad)
-		
+		debug.profileend()
+		debug.profilebegin("unloadChunks")
 		unloadChunks()
+		debug.profileend()
 		framesSinceLastLoad = 0
 		return
 	end
-	
+	debug.profileend()
+
+	debug.profilebegin("chunkrendering")
 	if framesSinceLastRender >= FRAMES_BETWEEN_RENDERS then
+		debug.profilebegin("findChunksToRender")
 		local chunksToRender = findChunksToRender()
+		debug.profileend()
+		debug.profilebegin("reorderChunkPriority")
 		reorderChunkPriority(chunksToRender)
+		debug.profileend()
+		debug.profilebegin("renderChunks")
 		renderChunks(chunksToRender)
+		debug.profileend()
 		
+		debug.profilebegin("findChunksToUnrender")
 		local ChunksToUnrender = findChunksToUnrender()
+		debug.profileend()
+		debug.profilebegin("reorderChunkPriority")
 		reorderChunkPriority(ChunksToUnrender)
+		debug.profileend()
+		debug.profilebegin("unerenderChunks")
 		unrenderChunks(ChunksToUnrender)
 		framesSinceLastRender = 0
+		debug.profileend()
 	end
+	debug.profileend()
 end
 
 local function handleChunkLoadedTerrain(chunkX: number, chunkZ: number, chunkY: number, chunkBlocks: buffer)
@@ -461,6 +486,8 @@ local function handleChunkLoadedBiome(chunkX: number, chunkZ: number, chunkY: nu
 	ChunksData[chunkX][chunkZ][chunkY]['buffer'] = chunkBlocks
 	ChunksData[chunkX][chunkZ][chunkY]['stage'] = ChunkGenerationStages['done']
 	ChunksData[chunkX][chunkZ][chunkY]['isLoading'] = false
+	print("bla")
+	--[[
 	
 	for neighbouringChunkString, neighbouringChunkNewBuffer  in neighbouringChunks do
 		local neighbouringChunkPosition = string.split(neighbouringChunkString, 'x')
@@ -484,7 +511,7 @@ local function handleChunkLoadedBiome(chunkX: number, chunkZ: number, chunkY: nu
 				end
 			end
 		end
-	end
+	end--]]
 end
 
 -- EVENTS

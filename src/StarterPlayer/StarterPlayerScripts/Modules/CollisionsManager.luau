@@ -28,7 +28,7 @@ local IS_DEBUGGING: boolean = false
 
 for i = 1, 10 do
 	local collisionPart: BasePart = Instance.new('Part')
-	collisionPart.Transparency = .5
+	collisionPart.Transparency = 1
 	collisionPart.Material = Enum.Material.Neon
 	collisionPart.Color = Color3.fromRGB(52, 255, 0)
 	collisionPart.Anchored = true
@@ -81,7 +81,10 @@ local function updateCollisionParts(): ()
 					continue
 				end
 				local chunkBlocks: buffer = ChunksData[chunkX][chunkZ][chunkY]['buffer']
-				
+				if not chunkBlocks then
+					continue
+				end
+
 				local bufferPosition = ChunksUtil.chunkToBufferPosition(x, z, y)
 				if buffer.readu8(chunkBlocks, bufferPosition) == AIR_ID then
 					continue

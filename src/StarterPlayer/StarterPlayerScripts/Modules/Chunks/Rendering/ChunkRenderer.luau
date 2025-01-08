@@ -13,9 +13,6 @@ local PlayerScripts = Player.PlayerScripts
 local Modules = PlayerScripts:WaitForChild('Modules')
 
 local ChunksData = require(Modules.Chunks.Data.ChunksData)
---local BlockMeshData = require(Modules.Chunks.Rendering.Data.BlockMeshData)
---local PlantMeshData = require(Modules.Chunks.Rendering.Data.PlantMeshData)
-local AtlasTextureData = require(Modules.Chunks.Rendering.Data.AtlasTextureData)
 local ChunkSettings = require(ReplicatedStorage.Shared.ChunkSettings)
 local ChunksUtil = require(ReplicatedStorage.Shared.ChunksUtil)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
@@ -51,7 +48,7 @@ local function createFace(folder: Folder, blockId, faceId, x, z, y, chunkX, chun
 	local new = ReplicatedStorage.Face:Clone()
 	new.Size = Vector3.new(BLOCK_SIZE, 0.001, BLOCK_SIZE)
 	new:PivotTo(CFrame.new((Vector3.new(x,y,z)+Vector3.new(chunkX, chunkY, chunkZ)*CHUNK_SIZE)*BLOCK_SIZE) * faceCf)
-	
+	new.BrickColor = BrickColor.palette(blockId)
 	new.Parent = folder
 end
 
@@ -102,7 +99,6 @@ function ChunkRenderer.renderChunk(chunkX: number, chunkZ: number, chunkY: numbe
 				if 
 					not blockId
 					or blockId == AIR_ID
-					or not AtlasTextureData[blockId]
 				then 
 					continue 
 				end

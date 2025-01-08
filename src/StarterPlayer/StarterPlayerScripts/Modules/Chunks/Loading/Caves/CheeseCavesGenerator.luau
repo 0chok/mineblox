@@ -1,3 +1,0 @@
-local CheeseCavesGenerator = {}
-
-return CheeseCavesGenerator

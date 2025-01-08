@@ -84,6 +84,7 @@ local function evaluateSpline(sequence: {}, x: number): (number)
 			return (1 - t) * currentKeypoint[2] + t * nextKeypoint[2]
 		end
 	end
+	return 0
 end
 
 -- PUBLIC
