@@ -6,10 +6,10 @@ local BaseFace = ReplicatedStorage.Face
 
 local CreatedFaces = 0
 
-local StoredFaces = {} :: {MeshPart}
+local StoredFaces = {} :: {BasePart}
 
 -- PRIVATE
-function CreateNewFace(doWarn: boolean?)
+function CreateNewFace(doWarn: boolean?): BasePart
     if doWarn then warn("No faces stored") end
     CreatedFaces += 1
 
@@ -23,7 +23,7 @@ function BlockFaceRecycler.RequestFace()
     return table.remove(StoredFaces,#StoredFaces) or CreateNewFace()
 end
 
-function BlockFaceRecycler.ReturnFaces(faces: {MeshPart})
+function BlockFaceRecycler.ReturnFaces(faces: {BasePart})
     local startIndex = #StoredFaces
     for i, face in faces do
         face.Transparency = 1

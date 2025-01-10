@@ -50,7 +50,7 @@ local function createFace(faceList: {}, blockId, faceId, x, z, y, chunkX, chunkZ
 	local faceCf = faceCfs[faceId]
 	local new = BlockFaceRecycler.RequestFace()
 	table.insert(faceList, new)
-
+	
 	new.Transparency = 0
 	new.Size = Vector3.new(BLOCK_SIZE, 0.001, BLOCK_SIZE)
 	new:PivotTo(CFrame.new((Vector3.new(x,y,z)+Vector3.new(chunkX, chunkY, chunkZ)*CHUNK_SIZE)*BLOCK_SIZE) * faceCf)
