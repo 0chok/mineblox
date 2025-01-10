@@ -231,17 +231,17 @@ local function FindChunksToRender(): {}
 			or     ChunksData[chunkX][chunkZ][chunkY - 1]['stage'] ~= ChunkGenerationStages['done']
 		then return {} end
 
-		--local isAllAir: boolean = true
-		--local chunkBlocks: buffer = ChunksData[chunkX][chunkZ][chunkY]['buffer']
-		--for i = 1, CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE do
-		--	if buffer.readu8(chunkBlocks, i) ~= AIR_ID then
-		--		isAllAir = false
-		--		break
-		--	end
-		--end
-		--if isAllAir then
-		--	--continue -- TODO fix the bug
-		--end
+		local isAllAir: boolean = true
+		local chunkBlocks: buffer = ChunksData[chunkX][chunkZ][chunkY]['buffer']
+		for i = 0, CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE do
+			if buffer.readu8(chunkBlocks, i) ~= AIR_ID then
+				isAllAir = false
+				break
+			end
+		end
+		if isAllAir then
+			continue
+		end
 
 		table.insert(toLoad, {chunkX, chunkZ, chunkY})
 	end
@@ -489,6 +489,13 @@ local function OnHeartBeat(): ()
 	LoadChunks(chunksToLoad)
 	debug.profileend()
 
+	debug.profilebegin("loadExtra")
+	if CheckedChunkOffsetsToLoad < 50 then
+		LoadChunks(FindChunksToLoad())
+	end
+	debug.profileend()
+
+	-- unload
 	debug.profilebegin("unloadChunks")
 	UnloadChunks()
 	debug.profileend()
