@@ -25,14 +25,14 @@ end
 
 
 -- Converts Vector3(x, y, z) position to a [chunk_x][chunk_z][x][z][y] 
-function ChunksUtil.worldToChunkPosition(coordinate : Vector3): {number}
+function ChunksUtil.worldToChunkPosition(coordinate : Vector3)
 	local chunkX =  ((coordinate.X - BLOCK_SIZE) / BLOCK_SIZE) // CHUNK_SIZE
 	local chunkZ = ((coordinate.Z - BLOCK_SIZE) / BLOCK_SIZE) // CHUNK_SIZE
 	local chunkY = ((coordinate.Y - BLOCK_SIZE) / BLOCK_SIZE) // CHUNK_SIZE
 	local x = coordinate.X / BLOCK_SIZE - (chunkX * CHUNK_SIZE)
 	local z = coordinate.Z / BLOCK_SIZE - (chunkZ * CHUNK_SIZE)
 	local y = coordinate.Y / BLOCK_SIZE - (chunkY * CHUNK_SIZE)
-	return {chunkX, chunkZ, chunkY, x, z, y}
+	return {chunkX = chunkX, chunkZ = chunkZ, chunkY = chunkY, x = x, z = z, y = y}
 end
 
 

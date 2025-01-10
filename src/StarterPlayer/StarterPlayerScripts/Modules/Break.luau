@@ -58,13 +58,15 @@ local function handleInputBegan(input: InputObject, typing: boolean): ()
 		end
 		
 		local chunkPosition = ChunksUtil.worldToChunkPosition(roundedPosition)
-		local chunkX = chunkPosition[1]
-		local chunkZ = chunkPosition[2]
-		local chunkY = chunkPosition[3]
-		local x = chunkPosition[4]
-		local z = chunkPosition[5]
-		local y = math.clamp(chunkPosition[6], 0, CHUNK_SIZE)
+		local chunkX = chunkPosition.chunkX
+		local chunkZ = chunkPosition.chunkZ
+		local chunkY = chunkPosition.chunkY
+		local x = chunkPosition.x
+		local z = chunkPosition.z
+		local y = math.clamp(chunkPosition.y, 0, CHUNK_SIZE)
 		
+		if not ChunksData[chunkX][chunkZ][chunkY] then continue end
+
 		local bufferPosition = ChunksUtil.chunkToBufferPosition(x, z, y)
 		
 		local blockId = buffer.readu8(ChunksData[chunkX][chunkZ][chunkY]['buffer'], bufferPosition)
