@@ -114,7 +114,8 @@ local function OnCharacterAdded(newCharacter)
 end
 
 RunService.PreRender:Connect(updateCollisionParts)
-
 Player.CharacterAdded:Connect(OnCharacterAdded)
+
+OnCharacterAdded(Character)
 
 return CollisionsManager

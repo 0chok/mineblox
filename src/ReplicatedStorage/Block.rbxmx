@@ -2,12 +2,10 @@
 	<Meta name="ExplicitAutoJoints">true</Meta>
 	<External>null</External>
 	<External>nil</External>
-	<Item class="MeshPart" referent="RBX45259103BFA54374910E97DE202A1C89">
+	<Item class="Part" referent="RBX9572B22A26D6404BB2029A9B2AA82649">
 		<Properties>
-			<SharedString name="AeroMeshData">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 			<bool name="Anchored">true</bool>
-			<BinaryString name="AttributesSerialize"><![CDATA[AgAAAAYAAABNZXNoSWQCFwAAAHJieGFzc2V0aWQ6Ly84NTg2MDU0MzI2BAAAAFNpemURAABA
-QG8SgzoAAEBA]]></BinaryString>
+			<BinaryString name="AttributesSerialize"></BinaryString>
 			<bool name="AudioCanCollide">true</bool>
 			<float name="BackParamA">-0.5</float>
 			<float name="BackParamB">0.5</float>
@@ -18,18 +16,18 @@ QG8SgzoAAEBA]]></BinaryString>
 			<token name="BottomSurface">0</token>
 			<token name="BottomSurfaceInput">0</token>
 			<CoordinateFrame name="CFrame">
-				<X>1.5</X>
-				<Y>0</Y>
-				<Z>0</Z>
-				<R00>0</R00>
-				<R01>1</R01>
+				<X>0</X>
+				<Y>0.5</Y>
+				<Z>-4.5</Z>
+				<R00>1</R00>
+				<R01>0</R01>
 				<R02>0</R02>
 				<R10>0</R10>
-				<R11>0</R11>
-				<R12>1</R12>
-				<R20>1</R20>
+				<R11>1</R11>
+				<R12>0</R12>
+				<R20>0</R20>
 				<R21>0</R21>
-				<R22>0</R22>
+				<R22>1</R22>
 			</CoordinateFrame>
 			<bool name="CanCollide">false</bool>
 			<bool name="CanQuery">false</bool>
@@ -43,25 +41,11 @@ QG8SgzoAAEBA]]></BinaryString>
 				<CustomPhysics>false</CustomPhysics>
 			</PhysicalProperties>
 			<bool name="DefinesCapabilities">false</bool>
-			<bool name="DoubleSided">false</bool>
-			<bool name="EnableFluidForces">false</bool>
-			<token name="FluidFidelityInternal">1</token>
+			<bool name="EnableFluidForces">true</bool>
 			<float name="FrontParamA">-0.5</float>
 			<float name="FrontParamB">0.5</float>
 			<token name="FrontSurface">0</token>
 			<token name="FrontSurfaceInput">0</token>
-			<bool name="HasJointOffset">false</bool>
-			<bool name="HasSkinnedMesh">false</bool>
-			<Vector3 name="InitialSize">
-				<X>2</X>
-				<Y>3.2584137e-07</Y>
-				<Z>2</Z>
-			</Vector3>
-			<Vector3 name="JointOffset">
-				<X>0</X>
-				<Y>0</Y>
-				<Z>0</Z>
-			</Vector3>
 			<float name="LeftParamA">-0.5</float>
 			<float name="LeftParamB">0.5</float>
 			<token name="LeftSurface">0</token>
@@ -70,10 +54,7 @@ QG8SgzoAAEBA]]></BinaryString>
 			<bool name="Massless">false</bool>
 			<token name="Material">256</token>
 			<string name="MaterialVariantSerialized"></string>
-			<Content name="MeshId"><url>rbxassetid://8586054326</url></Content>
-			<string name="Name">Face</string>
-			<SharedString name="PhysicalConfigData">+qv2o0HSW+htH+ALwYQpiw==</SharedString>
-			<BinaryString name="PhysicsData"></BinaryString>
+			<string name="Name">Block</string>
 			<CoordinateFrame name="PivotOffset">
 				<X>0</X>
 				<Y>0</Y>
@@ -82,14 +63,13 @@ QG8SgzoAAEBA]]></BinaryString>
 				<R01>0</R01>
 				<R02>0</R02>
 				<R10>0</R10>
-				<R11>0</R11>
+				<R11>-4.37113883e-08</R11>
 				<R12>-1</R12>
 				<R20>0</R20>
 				<R21>1</R21>
-				<R22>0</R22>
+				<R22>-4.37113883e-08</R22>
 			</CoordinateFrame>
 			<float name="Reflectance">0</float>
-			<token name="RenderFidelity">1</token>
 			<float name="RightParamA">-0.5</float>
 			<float name="RightParamB">0.5</float>
 			<token name="RightSurface">0</token>
@@ -100,45 +80,25 @@ QG8SgzoAAEBA]]></BinaryString>
 				<Y>0</Y>
 				<Z>0</Z>
 			</Vector3>
-			<int64 name="SourceAssetId">8586054367</int64>
+			<int64 name="SourceAssetId">-1</int64>
 			<BinaryString name="Tags"></BinaryString>
-			<Content name="TextureID"><null></null></Content>
 			<float name="TopParamA">-0.5</float>
 			<float name="TopParamB">0.5</float>
 			<token name="TopSurface">0</token>
 			<token name="TopSurfaceInput">0</token>
 			<float name="Transparency">1</float>
-			<Vector3 name="UnscaledCofm">
-				<X>NAN</X>
-				<Y>NAN</Y>
-				<Z>NAN</Z>
-			</Vector3>
-			<Vector3 name="UnscaledVolInertiaDiags">
-				<X>NAN</X>
-				<Y>NAN</Y>
-				<Z>NAN</Z>
-			</Vector3>
-			<Vector3 name="UnscaledVolInertiaOffDiags">
-				<X>NAN</X>
-				<Y>NAN</Y>
-				<Z>NAN</Z>
-			</Vector3>
-			<float name="UnscaledVolume">NAN</float>
 			<Vector3 name="Velocity">
 				<X>0</X>
 				<Y>0</Y>
 				<Z>0</Z>
 			</Vector3>
-			<int name="VertexCount">0</int>
+			<token name="formFactorRaw">1</token>
+			<token name="shape">1</token>
 			<Vector3 name="size">
 				<X>3</X>
-				<Y>0.00100000005</Y>
-				<Z>3</Z>
+				<Y>3</Y>
+				<Z>0.00100000005</Z>
 			</Vector3>
 		</Properties>
 	</Item>
-	<SharedStrings>
-		<SharedString md5="yuZpQdnvvUBOTYh1jqZ2cA=="></SharedString>
-		<SharedString md5="+qv2o0HSW+htH+ALwYQpiw==">Q1NHUEhTAAAAAEJMT0NL</SharedString>
-	</SharedStrings>
 </roblox>

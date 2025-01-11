@@ -2,7 +2,7 @@
 local BlocksRecycler = {}
 
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
-local BaseFace = ReplicatedStorage.Face2
+local BaseFace = ReplicatedStorage.Block
 
 local CreatedBlocks = 0
 
@@ -14,7 +14,7 @@ function CreateNewBlock(size, doWarn: boolean?): BasePart
     CreatedBlocks += 1
 
     local new = BaseFace:Clone()
-    new.Parent = workspace.Faces
+    new.Parent = workspace.Blocks
     new.Size = Vector3.new(size,size,size)
     return new
 end

@@ -38,6 +38,7 @@ local MAX_CHUNK_LOADING_ACTORS: number = ChunkSettings['MAX_CHUNK_LOADING_ACTORS
 local LOAD_OFFSET: number = 2
 
 local CHUNKS_TO_RENDER_PER_UPDATE: number = 1 --TODO fix big bug if more than 1
+local CHUNKS_TO_UNRENDER_PER_UPDATE: number = 1
 local CHUNKS_TO_LOAD_TERRAIN_PER_UPDATE: number = 9
 
 -- block ids
@@ -60,6 +61,7 @@ local LoadedChunks = {} :: {{x: number, y: number, z: number}}
 
 local ChunkOffsetsToNotUnrender: {[string]:boolean?} = {}
 local RenderedChunks = {} :: {{x: number, y: number, z: number}}
+local ChunksToUnrender = {} :: {{x: number, y: number, z: number}}
 
 -- actors
 local chunkLoadingActors: number = ClientSettings:GetAttribute('ChunkLoadingActors')
@@ -115,7 +117,9 @@ end
 
 
 local function UnrenderChunks(chunks: {{x: number, y: number, z: number}}): ()
+	local unrendered = 0
 	for i, chunk in chunks do
+
 		local index = table.find(RenderedChunks, chunk) -- probably bad idea to do this
 		if index then
 			table.remove(RenderedChunks, index)
@@ -123,6 +127,11 @@ local function UnrenderChunks(chunks: {{x: number, y: number, z: number}}): ()
 
 		ChunkRenderer.unrenderChunk(chunk.x, chunk.z, chunk.y)
 		ChunksData[chunk.x][chunk.z][chunk.y]['isRendered'] = false
+		
+		unrendered +=1
+		if unrendered >= CHUNKS_TO_UNRENDER_PER_UPDATE then
+			break
+		end
 	end
 end
 
@@ -403,18 +412,15 @@ local function OnHeartBeat(): ()
 		debug.profileend()
 
 		-- unrendering
-		debug.profilebegin("chunkUNrendering")
-
 		debug.profilebegin("findChunksToUnrender")
-		local ChunksToUnrender = FindChunksToUnrender()
+		ChunksToUnrender = FindChunksToUnrender()
 		debug.profileend()
 
-		debug.profilebegin("unerenderChunks")
-		UnrenderChunks(ChunksToUnrender)
-		debug.profileend()
-
-		debug.profileend()
 	end
+
+	debug.profilebegin("unerenderChunks")
+	UnrenderChunks(ChunksToUnrender)
+	debug.profileend()
 
 	--rendering
 	debug.profilebegin("chunkrendering")
