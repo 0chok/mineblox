@@ -19,7 +19,7 @@ local ChunkGenerationStages = require(Modules.Chunks.Data.ChunkGenerationStages)
 local ChunkSettings = require(ReplicatedStorage.Shared.ChunkSettings)
 local ChunksUtil = require(ReplicatedStorage.Shared.ChunksUtil)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
-local BlockFaceRecycler = require(ReplicatedStorage.Shared.BlockFaceRecycler)
+local BlocksRecycler = require(ReplicatedStorage.Shared.BlocksRecycler)
 
 local ParallelScripts = PlayerScripts:WaitForChild('ParallelScripts')
 
@@ -366,9 +366,9 @@ local function GenerateChunkOffsetsInRange(radius): {}
 end
 
 local function OnHeartBeat(): ()
-	if BlockFaceRecycler.GetStoredFacesCount() < 250 then -- could be done on separate thread in the future ?
+	if BlocksRecycler.GetStoredBlocksCount() < 250 then -- could be done on separate thread in the future ?
 		debug.profilebegin("CreateStoredFaces")
-		BlockFaceRecycler.CreateStoredFaces(50)
+		BlocksRecycler.CreateStoredBlocks(50)
 		debug.profileend()
 		return
 	end
