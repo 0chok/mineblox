@@ -35,12 +35,13 @@ local BLOCK_NEIGHBOUR_VECTORS =
 
 -- PRIVATE
 
-local function createBlock(blockId, x, z, y, chunkX, chunkZ, chunkY): BasePart
-	local new = BlocksRecycler.RequestBlock()
+local function createBlock(blockId, x, z, y, chunkX, chunkZ, chunkY, size: number): BasePart
+	local new = BlocksRecycler.RequestBlock(size)
 	
 	new.Transparency = 0
 	new:PivotTo(CFrame.new((Vector3.new(x,y,z)+Vector3.new(chunkX, chunkY, chunkZ)*CHUNK_SIZE)*BLOCK_SIZE))
 	new.BrickColor = BrickColor.palette(blockId)
+
 	return new
 end
 
@@ -84,22 +85,24 @@ function ChunkRenderer.renderChunk(chunkX: number, chunkZ: number, chunkY: numbe
 				end
 
 				if GetAirExposed(chunkX, chunkZ, chunkY, x, z, y) then
-					local newFace = createBlock(blockId, x, z, y, chunkX, chunkZ, chunkY)
+					local newFace = createBlock(blockId, x, z, y, chunkX, chunkZ, chunkY, 4)
 					table.insert(PartList, newFace)
 				end
 			end
 		end
 	end
 
-	if #PartList ~= 0 then 
+	if #PartList ~= 0 then
 		ChunkParts[`{chunkX}x{chunkZ}x{chunkY}`] = PartList
+		local newFace = createBlock(ItemsData.Bedrock['ID'], 1, 1, 1, chunkX, chunkZ, chunkY, 4)
+		table.insert(PartList, newFace)
 	end
 end
 
 function ChunkRenderer.unrenderChunk(chunkX: number, chunkZ: number, chunkY: number): ()
 	local chunk = ChunkParts[`{chunkX}x{chunkZ}x{chunkY}`]
 	if chunk then
-		BlocksRecycler.ReturnBlocks(chunk)
+		BlocksRecycler.ReturnBlocks(chunk, 4)
 		ChunkParts[`{chunkX}x{chunkZ}x{chunkY}`] = nil
 	end
 end

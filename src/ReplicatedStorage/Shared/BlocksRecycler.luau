@@ -6,7 +6,14 @@ local BaseFace = ReplicatedStorage.Block
 
 local CreatedBlocks = 0
 
-local StoredFaces = {} :: {BasePart}
+local StoredBlocks = setmetatable({}, {__index = function(t,i)
+
+    local newtable = {} :: {BasePart}
+
+    t[i] = newtable
+
+    return newtable
+end,})
 
 -- PRIVATE
 function CreateNewBlock(size, doWarn: boolean?): BasePart
@@ -15,40 +22,48 @@ function CreateNewBlock(size, doWarn: boolean?): BasePart
 
     local new = BaseFace:Clone()
     new.Parent = workspace.Blocks
-    new.Size = Vector3.new(size,size,size)
+    if size ~= -1 then -- all blocks that do not have a certain size are stored at -1
+        new.Size = Vector3.new(size,size,size)
+    end
     return new
 end
 
 -- PUBLIC
-function BlocksRecycler.RequestBlock()
-    return table.remove(StoredFaces,#StoredFaces) or CreateNewBlock(4, true)
+function BlocksRecycler.RequestBlock(size: number): BasePart
+    assert(size)
+    local t = StoredBlocks[size]
+    return table.remove(t,#t) or CreateNewBlock(size, true)
 end
 
-function BlocksRecycler.ReturnBlocks(faces: {BasePart})
-    local startIndex = #StoredFaces
+function BlocksRecycler.ReturnBlocks(faces: {BasePart}, size: number)
+    assert(size)
+    local t = StoredBlocks[size]
+    local startIndex = #t
     for i, face in faces do
         face.Transparency = 1
-        StoredFaces[startIndex + i] = faces[i]
+        t[startIndex + i] = faces[i]
     end
 
 end
 
-function BlocksRecycler.CreateStoredBlocks(count: number)
-    local startIndex = #StoredFaces
+function BlocksRecycler.CreateStoredBlocks(count: number, size: number)
+    assert(size)
+    local t = StoredBlocks[size]
+    local startIndex = #t
     for i = 1, count do
-        StoredFaces[startIndex + i] = CreateNewBlock(4)
+        t[startIndex + i] = CreateNewBlock(size)
     end
 end
 
-function BlocksRecycler.GetStoredBlocksCount()
-    return #StoredFaces
+function BlocksRecycler.GetStoredBlocksCount(size: number)
+    return #StoredBlocks[size]
 end
 
 -- init
 task.spawn(function()
     while true do
         task.wait(3)
-        print(CreatedBlocks, #StoredFaces)
+        print(CreatedBlocks, #StoredBlocks[4], #StoredBlocks[-1])
     end
 end)
 

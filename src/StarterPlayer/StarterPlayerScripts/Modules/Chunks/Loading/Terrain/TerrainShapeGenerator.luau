@@ -16,7 +16,8 @@ local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 
 local CHUNK_SIZE: number = ChunkSettings['CHUNK_SIZE']
 
-local STONE_ID: number = ItemsData['Stone']['ID']
+local STONE_ID: number = ItemsData.Stone['ID']
+local COBBLESTONE_ID: number = ItemsData.Cobblestone['ID']
 
 local squishFactor: number = 20
 
@@ -56,7 +57,11 @@ function TerrainShapeGenerator.generate(chunkX: number, chunkZ: number, chunkY: 
 				local densityModifier: number = (baseHeight - worldPositionY) / squishFactor
 
 				if density + densityModifier > 0 then
-					buffer.writeu8(chunkBlocks, bufferPositionX + bufferPositionZ + (y - 1), STONE_ID)
+					local bool1 = if worldPositionY > 12 then true else false
+					local bool2 = if math.random() > .1 then true else false
+					local xor = (bool1 or bool2) and (bool1 ~= bool2)
+					local blockType = if xor then STONE_ID else COBBLESTONE_ID
+					buffer.writeu8(chunkBlocks, bufferPositionX + bufferPositionZ + (y - 1), blockType)
 				end
 			end
 		end
