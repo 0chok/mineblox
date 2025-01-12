@@ -51,7 +51,7 @@ local function createCombinedBlock(blockId: number, x: number, z: number, y: num
 	new.Transparency = 0
 	new.Size = Vector3.new(sizeX,sizeY,sizeZ)*BLOCK_SIZE
 	new:PivotTo(CFrame.new((Vector3.new(x+(sizeX-1)*.5,y+(sizeY-1)*.5,z+(sizeZ-1)*.5)+Vector3.new(chunkX, chunkY, chunkZ)*CHUNK_SIZE)*BLOCK_SIZE))
-	new.BrickColor = BrickColor.Red()
+	new.Color = Color3.fromHSV(math.random(), .3, .8)
 
 	return new
 end
@@ -119,38 +119,51 @@ function ChunkRenderer.renderChunk(chunkX: number, chunkZ: number, chunkY: numbe
 				local expandX = 0
 				while x + expandX < CHUNK_SIZE do
 					expandX += 1
-					--if data[x + expandX][z][y] == false then -- hidden blocks are fine
-					--	potentialsizeX = expandX + 1
-					--	continue
-					--end 
+
+					if data[x + expandX][z][y] == false then -- hidden blocks are fine
+						potentialsizeX = expandX
+						continue
+					end 
 					if data[x + expandX][z][y] ~= blockId then 
 						break -- dont expand through other block types including air
 					end
 					if data[x + expandX][z][y] == blockId then 
 						data[x + expandX][z][y] = true
-						confirmedsizeX = expandX + 1
+						confirmedsizeX = expandX
 					end
 				end
 				
-				--local potentialsizeY = 1
-				--local confirmedsizeY = 1
-				--local expandY = 1
-				--while expandY + y <= CHUNK_SIZE do
-				--	if data[x][z][y] == false then -- hidden blocks are fine
-				--		potentialsizeY = expandY
-				--		continue 
-				--	end 
-				--	if data[x][z][y] ~= blockId then 
-				--		break -- dont expand through other block types including air
-				--	end
-				--	if data[x][z][y] == blockId then 
-				--		confirmedsizeY = expandY
-				--	end
-				--end
+				local potentialsizeY = 1
+				local confirmedsizeY = 1
+				local expandY = 0
+				while y + expandY < CHUNK_SIZE do
+					expandY += 1
+
+					local Stop = false
+					local Confirm = false
+					for i = confirmedsizeX - 1, potentialsizeX - 1 do
+
+						if data[x + i][z][y + expandY] == false then -- hidden blocks are fine
+							continue 
+						end 
+						if data[x + i][z][y + expandY] ~= blockId then  -- dont expand through other block types including air
+							Stop = true
+							break
+						end
+						if data[x + i][z][y + expandY] == blockId then  -- do expand through correct block
+							data[x + i][z][y + expandY] = true
+							Confirm = true
+						end
+					end
+					
+					if Stop then break end
+					potentialsizeY = expandY + 1
+					if Confirm then confirmedsizeY = expandY + 1 end
+				end
 
 				
-				if confirmedsizeX ~= 1 then
-					local newBlock = createCombinedBlock(blockId, x, z, y, chunkX, chunkZ, chunkY, confirmedsizeX, 1, 1) --TODO other axes
+				if confirmedsizeX ~= 1 or confirmedsizeY ~= 1 then
+					local newBlock = createCombinedBlock(blockId, x, z, y, chunkX, chunkZ, chunkY, confirmedsizeX + 1, confirmedsizeY + 1, 1) --TODO other axes
 					table.insert(partList[-1], newBlock)
 				else
 					local newBlock = createBlock(blockId, x, z, y, chunkX, chunkZ, chunkY) --TODO other axes
