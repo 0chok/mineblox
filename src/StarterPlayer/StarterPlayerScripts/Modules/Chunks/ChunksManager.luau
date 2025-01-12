@@ -381,6 +381,12 @@ local function OnHeartBeat(): ()
 		debug.profileend()
 		return
 	end
+	if BlocksRecycler.GetStoredBlocksCount(-1) < 250 then -- could be done on separate thread in the future ?
+		debug.profilebegin("CreateStoredFaces")
+		BlocksRecycler.CreateStoredBlocks(50, -1)
+		debug.profileend()
+	return
+	end
 
 	if workspace:GetAttribute("a") == true then return end
 	if not HumanoidRootPart or not HumanoidRootPart.Parent then

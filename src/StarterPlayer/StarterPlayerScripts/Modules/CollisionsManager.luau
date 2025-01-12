@@ -25,7 +25,7 @@ local AIR_ID: number = ItemsData['Air']['ID']
 local CollisionParts: Folder = workspace.CollisionParts
 local collisionParts = {}
 
-local IS_DEBUGGING: boolean = false
+local IS_DEBUGGING: boolean = true
 
 for i = 1, 10 do
 	local collisionPart: BasePart = Instance.new('Part')
