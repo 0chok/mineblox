@@ -110,63 +110,77 @@ function ChunkRenderer.renderChunk(chunkX: number, chunkZ: number, chunkY: numbe
 
 	for x = 1, CHUNK_SIZE do
 		for z = 1, CHUNK_SIZE do
-			for y = 1, CHUNK_SIZE do
+			for y = 1, CHUNK_SIZE do -- for each block
 				if typeof(data[x][z][y]) == "boolean" then continue end -- dont render air or hidden blocks
 				local blockId = data[x][z][y] :: number
 
-				local potentialsizeX = 1
-				local confirmedsizeX = 1
-				local expandX = 0
-				while x + expandX < CHUNK_SIZE do
-					expandX += 1
-
-					if data[x + expandX][z][y] == false then -- hidden blocks are fine
-						potentialsizeX = expandX
+				local confirmedExpandX = 0 -- the minimum we will to expand x
+				local potentialExpandX = 0-- the max we can expand x
+				
+				while x + potentialExpandX < CHUNK_SIZE do -- expand in x direction
+					potentialExpandX += 1
+					if data[x + potentialExpandX][z][y] == false then -- hidden blocks are fine
+						potentialExpandX = potentialExpandX
 						continue
 					end 
-					if data[x + expandX][z][y] ~= blockId then 
+
+					if data[x + potentialExpandX][z][y] ~= blockId then 
+						potentialExpandX -= 1
 						break -- dont expand through other block types including air
 					end
-					if data[x + expandX][z][y] == blockId then 
-						data[x + expandX][z][y] = true
-						confirmedsizeX = expandX
+
+					if data[x + potentialExpandX][z][y] == blockId then 
+						data[x + potentialExpandX][z][y] = true
+						confirmedExpandX = potentialExpandX
 					end
 				end
 				
-				local potentialsizeY = 1
-				local confirmedsizeY = 1
-				local expandY = 0
-				while y + expandY < CHUNK_SIZE do
-					expandY += 1
+				local potentialExpandY = 0 -- the max we can expand y
+				local confirmedExpandY = 0 -- the minimum we will to expand y
 
-					local Stop = false
-					local Confirm = false
-					for i = confirmedsizeX - 1, potentialsizeX - 1 do
+				for length = confirmedExpandX, potentialExpandX do -- try all lengths to expand into
+					local expandY = 0
+					while y + expandY < CHUNK_SIZE do -- for each block we try to expand 
+						expandY += 1
 
-						if data[x + i][z][y + expandY] == false then -- hidden blocks are fine
-							continue 
-						end 
-						if data[x + i][z][y + expandY] ~= blockId then  -- dont expand through other block types including air
-							Stop = true
+						local Stop = false
+						local FoundBlock = false
+
+						for i = 0, length do -- check every block along x axis at that length
+							if data[x + i][z][y + expandY] == false then -- hidden blocks are fine
+								continue 
+							end 
+							if data[x + i][z][y + expandY] ~= blockId then  -- dont expand through other block types including air
+								Stop = true
+								break
+							end
+							if data[x + i][z][y + expandY] == blockId then  -- do expand through correct block
+								FoundBlock = true
+							end
+						end				
+						potentialExpandY = expandY-1
+						if Stop == true then
 							break
 						end
-						if data[x + i][z][y + expandY] == blockId then  -- do expand through correct block
-							data[x + i][z][y + expandY] = true
-							Confirm = true
+						
+						if not FoundBlock then continue end
+						confirmedExpandY = expandY
+						-- overwrite blocks weve confirmed
+						for i = 0, length do
+							if data[x + i][z][y + expandY] == blockId then
+								data[x + i][z][y + expandY] = true
+							end
 						end
 					end
-					
-					if Stop then break end
-					potentialsizeY = expandY + 1
-					if Confirm then confirmedsizeY = expandY + 1 end
 				end
 
-				
-				if confirmedsizeX ~= 1 or confirmedsizeY ~= 1 then
-					local newBlock = createCombinedBlock(blockId, x, z, y, chunkX, chunkZ, chunkY, confirmedsizeX + 1, confirmedsizeY + 1, 1) --TODO other axes
+				if confirmedExpandX ~= 0 or confirmedExpandY ~= 0 then
+					local newBlock = createCombinedBlock(blockId, x, z, y, chunkX, chunkZ, chunkY, confirmedExpandX + 1, 1, confirmedExpandY + 1) --TODO other axes
+					newBlock:SetAttribute("confirmedExpandX", confirmedExpandX)
+					newBlock:SetAttribute("potentialExpandX", potentialExpandX)
 					table.insert(partList[-1], newBlock)
 				else
-					local newBlock = createBlock(blockId, x, z, y, chunkX, chunkZ, chunkY) --TODO other axes
+					local newBlock = createBlock(blockId, x, z, y, chunkX, chunkZ, chunkY)
 					table.insert(partList[BLOCK_SIZE], newBlock)
 				end
 				
