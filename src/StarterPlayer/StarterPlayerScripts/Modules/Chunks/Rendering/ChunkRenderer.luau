@@ -113,7 +113,8 @@ function ChunkRenderer.renderChunk(chunkX: number, chunkZ: number, chunkY: numbe
 			for y = 1, CHUNK_SIZE do -- for each block
 				if typeof(data[x][z][y]) == "boolean" then continue end -- dont render air or hidden blocks
 				local blockId = data[x][z][y] :: number
-
+				
+				-- X SECTION
 				local confirmedExpandX = 0 -- the minimum we will to expand x
 				local potentialExpandX = 0-- the max we can expand x
 				
@@ -135,42 +136,48 @@ function ChunkRenderer.renderChunk(chunkX: number, chunkZ: number, chunkY: numbe
 					end
 				end
 				
+				-- Y SECTION
 				local potentialExpandY = 0 -- the max we can expand y
 				local confirmedExpandY = 0 -- the minimum we will to expand y
 
 				for length = confirmedExpandX, potentialExpandX do -- try all lengths to expand into
-					local expandY = 0
-					while y + expandY < CHUNK_SIZE do -- for each block we try to expand 
-						expandY += 1
+					potentialExpandY = 0
+					local Stop = false
+					while y + potentialExpandY < CHUNK_SIZE do -- for each block we try to expand 
+						potentialExpandY += 1
 
-						local Stop = false
 						local FoundBlock = false
 
 						for i = 0, length do -- check every block along x axis at that length
-							if data[x + i][z][y + expandY] == false then -- hidden blocks are fine
+							if data[x + i][z][y + potentialExpandY] == false then -- hidden blocks are fine
 								continue 
 							end 
-							if data[x + i][z][y + expandY] ~= blockId then  -- dont expand through other block types including air
+							if data[x + i][z][y + potentialExpandY] ~= blockId then  -- dont expand through other block types including air
 								Stop = true
 								break
 							end
-							if data[x + i][z][y + expandY] == blockId then  -- do expand through correct block
+							if data[x + i][z][y + potentialExpandY] == blockId then  -- do expand through correct block
 								FoundBlock = true
 							end
 						end				
-						potentialExpandY = expandY-1
+						
 						if Stop == true then
+							potentialExpandY -= 1
 							break
 						end
 						
 						if not FoundBlock then continue end
-						confirmedExpandY = expandY
+						confirmedExpandY = potentialExpandY
 						-- overwrite blocks weve confirmed
 						for i = 0, length do
-							if data[x + i][z][y + expandY] == blockId then
-								data[x + i][z][y + expandY] = true
+							if data[x + i][z][y + potentialExpandY] == blockId then
+								data[x + i][z][y + potentialExpandY] = true
 							end
 						end
+					end
+
+					if Stop == true then
+						break
 					end
 				end
 
@@ -183,7 +190,6 @@ function ChunkRenderer.renderChunk(chunkX: number, chunkZ: number, chunkY: numbe
 					local newBlock = createBlock(blockId, x, z, y, chunkX, chunkZ, chunkY)
 					table.insert(partList[BLOCK_SIZE], newBlock)
 				end
-				
 				
 			end
 		end
