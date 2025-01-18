@@ -17,8 +17,8 @@ local ChunkSettings = require(ReplicatedStorage.Shared.ChunkSettings)
 local ChunksUtil = require(ReplicatedStorage.Shared.ChunksUtil)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 
-local CHUNK_SIZE: number = ChunkSettings['CHUNK_SIZE']
-local BLOCK_SIZE: number = ChunkSettings['BLOCK_SIZE']
+local CHUNK_SIZE: number = ChunkSettings.CHUNK_SIZE
+local BLOCK_SIZE: number = ChunkSettings.BLOCK_SIZE
 
 local AIR_ID: number = ItemsData['Air']['ID']
 

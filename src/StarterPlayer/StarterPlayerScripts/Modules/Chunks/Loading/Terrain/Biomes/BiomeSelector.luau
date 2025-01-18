@@ -9,7 +9,7 @@ local ChunkSettings = require(ReplicatedStorage.Shared.ChunkSettings)
 local ChunksUtil = require(ReplicatedStorage.Shared.ChunksUtil)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 
-local CHUNK_SIZE = ChunkSettings['CHUNK_SIZE']
+local CHUNK_SIZE = ChunkSettings.CHUNK_SIZE
 
 -- PRIVATE
 

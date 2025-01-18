@@ -14,7 +14,7 @@ local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local GrassLayerGenerator = require(Modules.Chunks.Loading.Terrain.Biomes.Forest.GrassLayerGenerator)
 --local TreesGenerator = require(Modules.Chunks.Loading.Terrain.Biomes.Forest.Decorations.Trees.TreesGenerator)
 
-local CHUNK_SIZE: number = ChunkSettings['CHUNK_SIZE']
+local CHUNK_SIZE: number = ChunkSettings.CHUNK_SIZE
 
 local AIR_ID: number = ItemsData['Air']['ID']
 local GRASS_BLOCK_ID: number = ItemsData['Grass Block']['ID']

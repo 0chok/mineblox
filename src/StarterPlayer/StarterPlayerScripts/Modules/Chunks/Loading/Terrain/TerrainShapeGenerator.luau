@@ -14,7 +14,7 @@ local ChunkSettings = require(ReplicatedStorage.Shared.ChunkSettings)
 local ChunksUtil = require(ReplicatedStorage.Shared.ChunksUtil)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 
-local CHUNK_SIZE: number = ChunkSettings['CHUNK_SIZE']
+local CHUNK_SIZE: number = ChunkSettings.CHUNK_SIZE
 
 local STONE_ID: number = ItemsData.Stone['ID']
 local COBBLESTONE_ID: number = ItemsData.Cobblestone['ID']

@@ -18,8 +18,8 @@ local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local mouse: Mouse = Player:GetMouse()
 local camera: Camera = workspace.CurrentCamera
 
-local BLOCK_SIZE: number = ChunkSettings['BLOCK_SIZE']
-local CHUNK_SIZE: number = ChunkSettings['CHUNK_SIZE']
+local BLOCK_SIZE: number = ChunkSettings.BLOCK_SIZE
+local CHUNK_SIZE: number = ChunkSettings.CHUNK_SIZE
 
 local AIR_ID: number = ItemsData['Air']['ID']
 

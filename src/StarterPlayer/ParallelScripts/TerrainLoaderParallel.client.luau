@@ -8,9 +8,9 @@ local ChunkSettings = require(ReplicatedStorage.Shared.ChunkSettings)
 local ItemsData = require(ReplicatedStorage.Shared.ItemsData)
 local TerrainShapeGenerator = require(StarterPlayer.StarterPlayerScripts.Modules.Chunks.Loading.Terrain.TerrainShapeGenerator)
 
-local BLOCK_SIZE: number = ChunkSettings['BLOCK_SIZE']
-local CHUNK_SIZE: number = ChunkSettings['CHUNK_SIZE']
-local CHUNK_DISTANCE: number = ChunkSettings['CHUNK_DISTANCE']
+local BLOCK_SIZE: number = ChunkSettings.CHUNK_SIZE
+local CHUNK_SIZE: number = ChunkSettings.BLOCK_SIZE
+local RENDER_DISTANCE: number = ChunkSettings.RENDER_DISTANCE
 
 local AIR_ID: number = ItemsData['Air']['ID']
 
