@@ -20,7 +20,7 @@ end
 
 -- Returns the buffer position of blockId from relative chunk position
 function ChunksUtil.chunkToBufferPosition(x: number, z: number, y: number): number
-	return (x - 1) * CHUNK_SIZE + (z - 1) * CHUNK_SIZE * CHUNK_SIZE + (y - 1) 
+	return (x - 1) * CHUNK_SIZE * CHUNK_SIZE + (y - 1) * CHUNK_SIZE  + (z - 1) 
 end
 
 

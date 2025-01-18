@@ -27,12 +27,12 @@ function TerrainShapeGenerator.generate(chunkX: number, chunkZ: number, chunkY: 
 	local baseHeights = {}
 	for x = 1, CHUNK_SIZE do
 		local worldPositionX: number = chunkX * CHUNK_SIZE + x
-		local bufferPositionX: number = (x - 1) * CHUNK_SIZE
+		local bufferPositionX: number = (x - 1) * CHUNK_SIZE  * CHUNK_SIZE
 		baseHeights[x] = {}
 
 		for z = 1, CHUNK_SIZE do
 			local worldPositionZ: number = chunkZ * CHUNK_SIZE + z
-			local bufferPositionZ: number = (z - 1) * CHUNK_SIZE * CHUNK_SIZE
+			local bufferPositionZ: number = (z - 1)
 			
 			-- maybe use the more complex noise function with diff parameters for each noise
 			local continentalnessPerlin: number = ChunksUtil.continentalnessNoise(worldPositionX, worldPositionZ, SEED - 1)
@@ -52,6 +52,7 @@ function TerrainShapeGenerator.generate(chunkX: number, chunkZ: number, chunkY: 
 			
 			for y = CHUNK_SIZE, 1, -1 do
 				local worldPositionY: number = chunkY * CHUNK_SIZE + y
+				local bufferPositionY: number = (y - 1) * CHUNK_SIZE
 
 				local density = math.noise(worldPositionX / 20, worldPositionZ / 20, worldPositionY / 20)
 				local densityModifier: number = (baseHeight - worldPositionY) / squishFactor
@@ -61,7 +62,7 @@ function TerrainShapeGenerator.generate(chunkX: number, chunkZ: number, chunkY: 
 					local bool2 = if math.random() > .1 then true else false
 					local xor = (bool1 or bool2) and (bool1 ~= bool2)
 					local blockType = if xor then STONE_ID else COBBLESTONE_ID
-					buffer.writeu8(chunkBlocks, bufferPositionX + bufferPositionZ + (y - 1), blockType)
+					buffer.writeu8(chunkBlocks, bufferPositionX + bufferPositionZ + bufferPositionY, blockType)
 				end
 			end
 		end

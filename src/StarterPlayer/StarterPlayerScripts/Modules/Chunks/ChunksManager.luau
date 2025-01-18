@@ -375,9 +375,9 @@ local function GenerateChunkOffsetsInRange(radius): {}
 end
 
 local function OnHeartBeat(): ()
-	if BlocksRecycler.GetStoredBlocksCount(4) < 250 then -- could be done on separate thread in the future ?
+	if BlocksRecycler.GetStoredBlocksCount(BLOCK_SIZE) < 250 then -- could be done on separate thread in the future ?
 		debug.profilebegin("CreateStoredFaces")
-		BlocksRecycler.CreateStoredBlocks(50, 4)
+		BlocksRecycler.CreateStoredBlocks(50, BLOCK_SIZE)
 		debug.profileend()
 		return
 	end

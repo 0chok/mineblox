@@ -35,12 +35,12 @@ local BLOCK_NEIGHBOUR_VECTORS =
 
 -- PRIVATE
 
-local function createBlock(blockId, x, z, y, chunkX, chunkZ, chunkY): BasePart
+local function createBlock(blockId: number, x, z, y, chunkX, chunkZ, chunkY): BasePart
 	local new = BlocksRecycler.RequestBlock(BLOCK_SIZE)
 	
 	new.Transparency = 0
 	new:PivotTo(CFrame.new((Vector3.new(x,y,z)+Vector3.new(chunkX, chunkY, chunkZ)*CHUNK_SIZE)*BLOCK_SIZE))
-	new.BrickColor = BrickColor.palette(blockId)
+	new.BrickColor = BrickColor.palette(blockId+5)
 
 	return new
 end
@@ -51,7 +51,7 @@ local function createCombinedBlock(blockId: number, x: number, z: number, y: num
 	new.Transparency = 0
 	new.Size = Vector3.new(sizeX,sizeY,sizeZ)*BLOCK_SIZE
 	new:PivotTo(CFrame.new((Vector3.new(x+(sizeX-1)*.5,y+(sizeY-1)*.5,z+(sizeZ-1)*.5)+Vector3.new(chunkX, chunkY, chunkZ)*CHUNK_SIZE)*BLOCK_SIZE))
-	new.Color = Color3.fromHSV(math.random(), .3, .8)
+	new.BrickColor = BrickColor.palette(blockId+5)--Color3.fromHSV(math.random(), .3, .8)
 
 	return new
 end
@@ -84,35 +84,36 @@ function ChunkRenderer.renderChunk(chunkX: number, chunkZ: number, chunkY: numbe
 	
 	local data = {} :: {{{boolean | number}}}
 	for x = 1, CHUNK_SIZE do
-		local bufferPositionX = (x - 1) * CHUNK_SIZE
+		local bufferPositionX = (x - 1) * CHUNK_SIZE * CHUNK_SIZE
 		data[x] = {}
-		for z = 1, CHUNK_SIZE do
-			local bufferPositionZ = (z - 1) * CHUNK_SIZE * CHUNK_SIZE
-			data[x][z] = {}
-			for y = 1, CHUNK_SIZE do
-				local blockId = buffer.readu8(loadedChunkBlocks, bufferPositionX + bufferPositionZ + (y - 1))
+		for y = 1, CHUNK_SIZE do
+			local bufferPositionZ = (y - 1) * CHUNK_SIZE 
+			data[x][y] = {}
+			for z = 1, CHUNK_SIZE do
+				local bufferPositionY: number = (z - 1)
+				local blockId = buffer.readu8(loadedChunkBlocks, bufferPositionX + bufferPositionZ + bufferPositionY)
 				if 
 					not blockId
 					or blockId == AIR_ID
 				then 
-					data[x][z][y] = true
+					data[x][y][z] = true
 					continue 
 				end
 
 				if GetAirExposed(chunkX, chunkZ, chunkY, x, z, y) then
-					data[x][z][y] = blockId
+					data[x][y][z] = blockId
 				else
-					data[x][z][y] = false
+					data[x][y][z] = false
 				end
 			end
 		end
 	end
 
 	for x = 1, CHUNK_SIZE do
-		for z = 1, CHUNK_SIZE do
-			for y = 1, CHUNK_SIZE do -- for each block
-				if typeof(data[x][z][y]) == "boolean" then continue end -- dont render air or hidden blocks
-				local blockId = data[x][z][y] :: number
+		for y = 1, CHUNK_SIZE do
+			for z = 1, CHUNK_SIZE do -- for each block
+				if typeof(data[x][y][z]) == "boolean" then continue end -- dont render air or hidden blocks
+				local blockId = data[x][y][z] :: number
 				
 				-- X SECTION
 				local confirmedExpandX = 0 -- the minimum we will to expand x
@@ -120,18 +121,18 @@ function ChunkRenderer.renderChunk(chunkX: number, chunkZ: number, chunkY: numbe
 				
 				while x + potentialExpandX < CHUNK_SIZE do -- expand in x direction
 					potentialExpandX += 1
-					if data[x + potentialExpandX][z][y] == false then -- hidden blocks are fine
+					if data[x + potentialExpandX][y][z] == false then -- hidden blocks are fine
 						potentialExpandX = potentialExpandX
 						continue
 					end 
 
-					if data[x + potentialExpandX][z][y] ~= blockId then 
+					if data[x + potentialExpandX][y][z] ~= blockId then 
 						potentialExpandX -= 1
 						break -- dont expand through other block types including air
 					end
 
-					if data[x + potentialExpandX][z][y] == blockId then 
-						data[x + potentialExpandX][z][y] = true
+					if data[x + potentialExpandX][y][z] == blockId then 
+						data[x + potentialExpandX][y][z] = true
 						confirmedExpandX = potentialExpandX
 					end
 				end
@@ -149,17 +150,17 @@ function ChunkRenderer.renderChunk(chunkX: number, chunkZ: number, chunkY: numbe
 						local FoundBlock = false
 
 						for i = 0, length do -- check every block along x axis at that length
-							if data[x + i][z][y + potentialExpandY] == false then -- hidden blocks are fine
+							if data[x + i][y + potentialExpandY][z] == false then -- hidden blocks are fine
 								continue 
 							end 
-							if data[x + i][z][y + potentialExpandY] ~= blockId then  -- dont expand through other block types including air
+							if data[x + i][y + potentialExpandY][z] ~= blockId then  -- dont expand through other block types including air
 								Stop = true
 								break
 							end
-							if data[x + i][z][y + potentialExpandY] == blockId then  -- do expand through correct block
+							if data[x + i][y + potentialExpandY][z] == blockId then  -- do expand through correct block
 								FoundBlock = true
 							end
-						end				
+						end
 						
 						if Stop == true then
 							potentialExpandY -= 1
@@ -170,8 +171,8 @@ function ChunkRenderer.renderChunk(chunkX: number, chunkZ: number, chunkY: numbe
 						confirmedExpandY = potentialExpandY
 						-- overwrite blocks weve confirmed
 						for i = 0, length do
-							if data[x + i][z][y + potentialExpandY] == blockId then
-								data[x + i][z][y + potentialExpandY] = true
+							if data[x + i][y + potentialExpandY][z] == blockId then
+								data[x + i][y + potentialExpandY][z] = true
 							end
 						end
 					end
