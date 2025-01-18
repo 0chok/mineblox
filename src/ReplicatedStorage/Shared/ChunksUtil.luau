@@ -4,8 +4,8 @@ local ReplicatedStorage = game:GetService('ReplicatedStorage')
 
 local ChunkSettings = require(ReplicatedStorage.Shared.ChunkSettings)
 
-local CHUNK_SIZE: number = ChunkSettings['CHUNK_SIZE']
-local BLOCK_SIZE: number = ChunkSettings['BLOCK_SIZE']
+local CHUNK_SIZE: number = ChunkSettings.CHUNK_SIZE
+local BLOCK_SIZE: number = ChunkSettings.BLOCK_SIZE
 
 -- PUBLIC
 

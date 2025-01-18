@@ -20,7 +20,7 @@ local TerrainShapeGenerator = require(Modules.Chunks.Loading.Terrain.TerrainShap
 
 local BLOCK_SIZE: number = ChunkSettings.BLOCK_SIZE
 local CHUNK_SIZE: number = ChunkSettings.CHUNK_SIZE
-local CHUNK_DISTANCE: number = ChunkSettings.CHUNK_DISTANCE
+local RENDER_DISTANCE: number = ChunkSettings.RENDER_DISTANCE
 
 local AIR_ID: number = ItemsData['Air']['ID']
 

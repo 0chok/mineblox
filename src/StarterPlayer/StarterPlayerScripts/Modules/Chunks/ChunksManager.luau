@@ -29,10 +29,10 @@ local TerrainLoaderParallel: LocalScript = ParallelScripts.TerrainLoaderParallel
 local ClientSettings = PlayerScripts:WaitForChild('ClientSettings')
 
 -- render settings
-local BLOCK_SIZE: number = ChunkSettings['BLOCK_SIZE']
-local CHUNK_SIZE: number = ChunkSettings['CHUNK_SIZE']
-local RENDER_DISTANCE: number = ChunkSettings['RENDER_DISTANCE']
-local MAX_CHUNK_LOADING_ACTORS: number = ChunkSettings['MAX_CHUNK_LOADING_ACTORS']
+local BLOCK_SIZE: number = ChunkSettings.BLOCK_SIZE
+local CHUNK_SIZE: number = ChunkSettings.CHUNK_SIZE
+local RENDER_DISTANCE: number = ChunkSettings.RENDER_DISTANCE
+local MAX_CHUNK_LOADING_ACTORS: number = ChunkSettings.MAX_CHUNK_LOADING_ACTORS
 
 -- load count
 local LOAD_OFFSET: number = 2
