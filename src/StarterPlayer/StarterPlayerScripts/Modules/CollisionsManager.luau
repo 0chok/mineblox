@@ -66,21 +66,23 @@ local function updateCollisionParts(): ()
 	for worldX = roundedPosition.X - BLOCK_SIZE, roundedPosition.X + BLOCK_SIZE, BLOCK_SIZE do
 		for worldZ = roundedPosition.Z - BLOCK_SIZE, roundedPosition.Z + BLOCK_SIZE, BLOCK_SIZE do
 			for worldY = roundedPosition.Y - BLOCK_SIZE, roundedPosition.Y + BLOCK_SIZE, BLOCK_SIZE do
-				local chunkPosition = ChunksUtil.worldToChunkPosition(Vector3.new(worldX, worldY, worldZ))
+				local Posinfo = ChunksUtil.worldToChunkPosition(Vector3.new(worldX, worldY, worldZ))
+				local chunkPosition = Posinfo.chunk
+				local posInChunk = Posinfo.pos
 				
 				if 
-					not ChunksData[chunkPosition.chunkX] 
-					or not ChunksData[chunkPosition.chunkX][chunkPosition.chunkZ]
-					or not ChunksData[chunkPosition.chunkX][chunkPosition.chunkZ][chunkPosition.chunkY]
+					not ChunksData[chunkPosition.X] 
+					or not ChunksData[chunkPosition.X][chunkPosition.Z]
+					or not ChunksData[chunkPosition.X][chunkPosition.Z][chunkPosition.Y]
 				then
 					continue
 				end
-				local chunkBlocks: buffer = ChunksData[chunkPosition.chunkX][chunkPosition.chunkZ][chunkPosition.chunkY]['buffer']
+				local chunkBlocks: buffer = ChunksData[chunkPosition.X][chunkPosition.Z][chunkPosition.Y]['buffer']
 				if not chunkBlocks then
 					continue
 				end
 
-				local bufferPosition = ChunksUtil.chunkToBufferPosition(chunkPosition.x,chunkPosition.z,chunkPosition.y)
+				local bufferPosition = ChunksUtil.chunkToBufferPosition(posInChunk.X,posInChunk.Z,posInChunk.Y)
 				if buffer.readu8(chunkBlocks, bufferPosition) == AIR_ID then
 					continue
 				end

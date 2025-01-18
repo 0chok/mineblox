@@ -35,22 +35,22 @@ local BLOCK_NEIGHBOUR_VECTORS =
 
 -- PRIVATE
 
-local function createBlock(blockId: number, x, z, y, chunkX, chunkZ, chunkY): BasePart
+local function createBlock(blockId: number, position: Vector3, chunkPosition: Vector3): BasePart
 	local new = BlocksRecycler.RequestBlock(BLOCK_SIZE)
 	
 	new.Transparency = 0
-	new:PivotTo(CFrame.new((Vector3.new(x,y,z)+Vector3.new(chunkX, chunkY, chunkZ)*CHUNK_SIZE)*BLOCK_SIZE))
+	new:PivotTo(CFrame.new((Vector3.new(position.X,position.Y,position.Z)+Vector3.new(chunkPosition.X, chunkPosition.Y, chunkPosition.Z)*CHUNK_SIZE)*BLOCK_SIZE))
 	new.BrickColor = BrickColor.palette(blockId+5)
 
 	return new
 end
 
-local function createCombinedBlock(blockId: number, x: number, z: number, y: number, chunkX: number, chunkZ: number, chunkY: number, sizeX: number, sizeZ: number, sizeY: number): BasePart
+local function createCombinedBlock(blockId: number, position: Vector3, chunkPosition: Vector3, size: Vector3): BasePart
 	local new = BlocksRecycler.RequestBlock(-1)
 
 	new.Transparency = 0
-	new.Size = Vector3.new(sizeX,sizeY,sizeZ)*BLOCK_SIZE
-	new:PivotTo(CFrame.new((Vector3.new(x+(sizeX-1)*.5,y+(sizeY-1)*.5,z+(sizeZ-1)*.5)+Vector3.new(chunkX, chunkY, chunkZ)*CHUNK_SIZE)*BLOCK_SIZE))
+	new.Size = Vector3.new(size.X,size.Y,size.Z)*BLOCK_SIZE
+	new:PivotTo(CFrame.new((Vector3.new(position.X+(size.X-1)*.5,position.Y+(size.Y-1)*.5,position.Z+(size.Z-1)*.5)+Vector3.new(chunkPosition.X, chunkPosition.Y, chunkPosition.Z)*CHUNK_SIZE)*BLOCK_SIZE))
 	new.BrickColor = BrickColor.palette(blockId+5)--Color3.fromHSV(math.random(), .3, .8)
 
 	return new
@@ -62,11 +62,13 @@ local function GetAirExposed(chunkX: number, chunkZ: number, chunkY: number, x: 
 	for i, offsetVector in BLOCK_NEIGHBOUR_VECTORS do
 		local neighborWorldPosition = worldPosition + offsetVector
 		
-		local neighbour = ChunksUtil.worldToChunkPosition(neighborWorldPosition)
+		local neighbourPosinfo = ChunksUtil.worldToChunkPosition(neighborWorldPosition)
+		local chunkPosition = neighbourPosinfo.chunk
+		local posInChunk = neighbourPosinfo.pos
 		
-		local bufferPosition = ChunksUtil.chunkToBufferPosition(neighbour.x, neighbour.z, neighbour.y)
+		local bufferPosition = ChunksUtil.chunkToBufferPosition(posInChunk.X, posInChunk.Z, posInChunk.Y)
 
-		if buffer.readu8(ChunksData[neighbour.chunkX][neighbour.chunkZ][neighbour.chunkY]['buffer'], bufferPosition) == AIR_ID then
+		if buffer.readu8(ChunksData[chunkPosition.X][chunkPosition.Z][chunkPosition.Y]['buffer'], bufferPosition) == AIR_ID then
 			return true
 		end
 	end
@@ -75,9 +77,9 @@ end
 
 -- PUBLIC
 
-function ChunkRenderer.renderChunk(chunkX: number, chunkZ: number, chunkY: number): ()	
-	local loadedChunkBlocks: buffer = ChunksData[chunkX][chunkZ][chunkY]['buffer']
-	
+function ChunkRenderer.renderChunk(chunkPosition: Vector3): ()	
+	local loadedChunkBlocks: buffer = ChunksData[chunkPosition.X][chunkPosition.Z][chunkPosition.Y]['buffer']
+
 	local partList = {}
 	partList[BLOCK_SIZE] = {}
 	partList[-1] = {}
@@ -100,7 +102,7 @@ function ChunkRenderer.renderChunk(chunkX: number, chunkZ: number, chunkY: numbe
 					continue 
 				end
 
-				if GetAirExposed(chunkX, chunkZ, chunkY, x, z, y) then
+				if GetAirExposed(chunkPosition.X, chunkPosition.Z, chunkPosition.Y, x, z, y) then
 					data[x][y][z] = blockId
 				else
 					data[x][y][z] = false
@@ -181,14 +183,16 @@ function ChunkRenderer.renderChunk(chunkX: number, chunkZ: number, chunkY: numbe
 						break
 					end
 				end
-
+				
+				local positionInChunk = Vector3.new(x, y, z)
+				local size = Vector3.new(confirmedExpandX + 1, confirmedExpandY + 1, 1)
 				if confirmedExpandX ~= 0 or confirmedExpandY ~= 0 then
-					local newBlock = createCombinedBlock(blockId, x, z, y, chunkX, chunkZ, chunkY, confirmedExpandX + 1, 1, confirmedExpandY + 1) --TODO other axes
+					local newBlock = createCombinedBlock(blockId, positionInChunk, chunkPosition, size) --TODO other axes
 					newBlock:SetAttribute("confirmedExpandX", confirmedExpandX)
 					newBlock:SetAttribute("potentialExpandX", potentialExpandX)
 					table.insert(partList[-1], newBlock)
 				else
-					local newBlock = createBlock(blockId, x, z, y, chunkX, chunkZ, chunkY)
+					local newBlock = createBlock(blockId, positionInChunk, chunkPosition)
 					table.insert(partList[BLOCK_SIZE], newBlock)
 				end
 				
@@ -197,19 +201,19 @@ function ChunkRenderer.renderChunk(chunkX: number, chunkZ: number, chunkY: numbe
 	end
 
 	if #partList[BLOCK_SIZE] ~= 0 or #partList[-1] ~= 0 then
-		ChunkParts[`{chunkX}x{chunkZ}x{chunkY}`] = partList
-		local newBlock = createBlock(ItemsData.Bedrock['ID'], 1, 1, 1, chunkX, chunkZ, chunkY)
+		ChunkParts[`{chunkPosition.X}x{chunkPosition.Z}x{chunkPosition.Y}`] = partList
+		local newBlock = createBlock(ItemsData.Bedrock['ID'], Vector3.one, chunkPosition)
 		table.insert(partList[BLOCK_SIZE], newBlock)
 	end
 end
 
-function ChunkRenderer.unrenderChunk(chunkX: number, chunkZ: number, chunkY: number): ()
-	local chunk = ChunkParts[`{chunkX}x{chunkZ}x{chunkY}`]
+function ChunkRenderer.unrenderChunk(chunkPosition: Vector3): ()
+	local chunk = ChunkParts[`{chunkPosition.X}x{chunkPosition.Z}x{chunkPosition.Y}`]
 	if chunk then
 		for i, list in chunk do
 			BlocksRecycler.ReturnBlocks(list, i)
 		end
-		ChunkParts[`{chunkX}x{chunkZ}x{chunkY}`] = nil
+		ChunkParts[`{chunkPosition.X}x{chunkPosition.Z}x{chunkPosition.Y}`] = nil
 	end
 end
 

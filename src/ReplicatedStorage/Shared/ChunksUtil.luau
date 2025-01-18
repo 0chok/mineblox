@@ -32,7 +32,7 @@ function ChunksUtil.worldToChunkPosition(coordinate : Vector3)
 	local x = coordinate.X / BLOCK_SIZE - (chunkX * CHUNK_SIZE)
 	local z = coordinate.Z / BLOCK_SIZE - (chunkZ * CHUNK_SIZE)
 	local y = coordinate.Y / BLOCK_SIZE - (chunkY * CHUNK_SIZE)
-	return {chunkX = chunkX, chunkZ = chunkZ, chunkY = chunkY, x = x, z = z, y = y}
+	return {chunk = Vector3.new(chunkX, chunkY, chunkZ), pos = Vector3.new(x, y, z)}
 end
 
 

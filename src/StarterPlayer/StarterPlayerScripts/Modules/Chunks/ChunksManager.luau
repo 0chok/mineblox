@@ -108,9 +108,10 @@ local function RenderChunks(toRender: {}): ()
 		local chunkX = chunk[1]
 		local chunkZ = chunk[2]
 		local chunkY = chunk[3]
-		
+		local chunkPosition = Vector3.new(chunkX, chunkY, chunkZ) 
+
 		ChunksData[chunkX][chunkZ][chunkY]['isRendered'] = true
-		ChunkRenderer.renderChunk(chunkX, chunkZ, chunkY)
+		ChunkRenderer.renderChunk(chunkPosition)
 		table.insert(RenderedChunks, {x = chunkX, y = chunkY, z = chunkZ})
 	end
 end
@@ -125,7 +126,8 @@ local function UnrenderChunks(chunks: {{x: number, y: number, z: number}}): ()
 			table.remove(RenderedChunks, index)
 		end
 
-		ChunkRenderer.unrenderChunk(chunk.x, chunk.z, chunk.y)
+		local chunkPosition = Vector3.new(chunk.x, chunk.y, chunk.z)
+		ChunkRenderer.unrenderChunk(chunkPosition)
 		ChunksData[chunk.x][chunk.z][chunk.y]['isRendered'] = false
 		
 		unrendered +=1
@@ -201,7 +203,8 @@ local function UnloadChunks(chunks: {{x: number,y: number,z: number}})
 		end
 
 		if ChunksData[chunk.x][chunk.z][chunk.y]["isRendered"] then 
-			ChunkRenderer.unrenderChunk(chunk.x, chunk.z, chunk.y)
+			local chunkPosition = Vector3.new(chunk.x, chunk.y, chunk.z)
+			ChunkRenderer.unrenderChunk(chunkPosition)
 		end
 		ChunksData[chunk.x][chunk.z][chunk.y] = nil
 	end

@@ -57,43 +57,42 @@ local function handleInputBegan(input: InputObject, typing: boolean): ()
 			continue
 		end
 		
-		local chunkPosition = ChunksUtil.worldToChunkPosition(roundedPosition)
-		local chunkX = chunkPosition.chunkX
-		local chunkZ = chunkPosition.chunkZ
-		local chunkY = chunkPosition.chunkY
-		local x = chunkPosition.x
-		local z = chunkPosition.z
-		local y = math.clamp(chunkPosition.y, 0, CHUNK_SIZE)
+		local Posinfo = ChunksUtil.worldToChunkPosition(roundedPosition)
+		local chunkPosition = Posinfo.chunk
+		local posInChunk = Posinfo.pos
+		local x = posInChunk.x
+		local z = posInChunk.z
+		local y = math.clamp(posInChunk.y, 0, CHUNK_SIZE)
 		
-		if not ChunksData[chunkX][chunkZ][chunkY] then continue end
+		if not ChunksData[chunkPosition.X][chunkPosition.Z][chunkPosition.Y] then continue end
 
 		local bufferPosition = ChunksUtil.chunkToBufferPosition(x, z, y)
 		
-		local blockId = buffer.readu8(ChunksData[chunkX][chunkZ][chunkY]['buffer'], bufferPosition)
+		local blockId = buffer.readu8(ChunksData[chunkPosition.X][chunkPosition.Z][chunkPosition.Y]['buffer'], bufferPosition)
 		
 		if blockId ~= AIR_ID then
-			buffer.writeu8(ChunksData[chunkX][chunkZ][chunkY]['buffer'], bufferPosition, AIR_ID)
-			local toRerender = {{chunkX, chunkZ, chunkY}}
+			buffer.writeu8(ChunksData[chunkPosition.X][chunkPosition.Z][chunkPosition.Y]['buffer'], bufferPosition, AIR_ID)
+			local toRerender = {chunkPosition}
 			
 			if x == 1 then
-				table.insert(toRerender, {chunkX - 1, chunkZ, chunkY})
+				table.insert(toRerender, chunkPosition + Vector3.new(0 - 1, 0, 0))
 			elseif x == CHUNK_SIZE then
-				table.insert(toRerender, {chunkX + 1, chunkZ, chunkY})
-			end
-			if z == 1 then
-				table.insert(toRerender, {chunkX, chunkZ - 1, chunkY})
-			elseif z == CHUNK_SIZE then
-				table.insert(toRerender, {chunkX, chunkZ + 1, chunkY})
+				table.insert(toRerender, chunkPosition + Vector3.new(0 + 1, 0, 0))
 			end
 			if y == 1 then
-				table.insert(toRerender, {chunkX, chunkZ, chunkY - 1})
+				table.insert(toRerender, chunkPosition + Vector3.new(0, 0 - 1, 0))
 			elseif y == CHUNK_SIZE then
-				table.insert(toRerender, {chunkX, chunkZ, chunkY + 1})
+				table.insert(toRerender, chunkPosition + Vector3.new(0, 0 + 1, 0))
+			end
+			if z == 1 then
+				table.insert(toRerender, chunkPosition + Vector3.new(0, 0, 0 - 1))
+			elseif z == CHUNK_SIZE then
+				table.insert(toRerender, chunkPosition + Vector3.new(0, 0, 0 + 1))
 			end
 			
 			for _, chunk in toRerender do
-				ChunkRenderer.unrenderChunk(chunk[1], chunk[2], chunk[3])
-				ChunkRenderer.renderChunk(chunk[1], chunk[2], chunk[3])
+				ChunkRenderer.unrenderChunk(chunk)
+				ChunkRenderer.renderChunk(chunk)
 			end
 			return
 		end
