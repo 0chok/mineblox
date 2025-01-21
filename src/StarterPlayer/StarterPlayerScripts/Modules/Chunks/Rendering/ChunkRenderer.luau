@@ -183,13 +183,60 @@ function ChunkRenderer.renderChunk(chunkPosition: Vector3): ()
 						break
 					end
 				end
+
+				-- Z SECTION
+				local potentialExpandZ = 0 -- the max we can expand z
+				local confirmedExpandZ = 0 -- the minimum we will to expand z
+				for lengthY = confirmedExpandY, potentialExpandY do -- try all lengths to expand into Y
+					potentialExpandZ = 0
+					local Stop = false
+					while z + potentialExpandZ < CHUNK_SIZE do -- for each block we try to expand 
+						potentialExpandZ += 1
+
+						local FoundBlock = false
+
+						for i = 0, confirmedExpandX do -- check every block along x axis at that length
+							for j = 0, lengthY do -- check every block along y axis at that length
+								if data[x + i][y + j][z + potentialExpandZ] == false then -- hidden blocks are fine
+									continue 
+								end 
+								if data[x + i][y + j][z + potentialExpandZ] ~= blockId then  -- dont expand through other block types including air
+									Stop = true
+									break
+								end
+								if data[x + i][y + j][z + potentialExpandZ] == blockId then  -- do expand through correct block
+									FoundBlock = true
+								end
+							end
+						end
+						
+						if Stop == true then
+							potentialExpandZ -= 1
+							break
+						end
+						
+						if not FoundBlock then continue end
+						confirmedExpandZ = potentialExpandZ
+						-- overwrite blocks weve confirmed
+						for i = 0, confirmedExpandX do 
+							for j = 0, lengthY do
+								if data[x + i][y + j][z + potentialExpandZ] == blockId then
+									data[x + i][y + j][z + potentialExpandZ] = true
+								end
+							end
+						end
+					end
+
+					if Stop == true then
+						break
+					end
+				end
 				
 				local positionInChunk = Vector3.new(x, y, z)
-				local size = Vector3.new(confirmedExpandX + 1, confirmedExpandY + 1, 1)
-				if confirmedExpandX ~= 0 or confirmedExpandY ~= 0 then
+				
+				if confirmedExpandX ~= 0 or confirmedExpandY ~= 0  or confirmedExpandZ ~= 0  then
+					local size = Vector3.new(confirmedExpandX + 1, confirmedExpandY + 1, confirmedExpandZ + 1)
 					local newBlock = createCombinedBlock(blockId, positionInChunk, chunkPosition, size) --TODO other axes
-					newBlock:SetAttribute("confirmedExpandX", confirmedExpandX)
-					newBlock:SetAttribute("potentialExpandX", potentialExpandX)
 					table.insert(partList[-1], newBlock)
 				else
 					local newBlock = createBlock(blockId, positionInChunk, chunkPosition)
