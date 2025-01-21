@@ -51,7 +51,8 @@ local function createCombinedBlock(blockId: number, position: Vector3, chunkPosi
 	new.Transparency = 0
 	new.Size = Vector3.new(size.X,size.Y,size.Z)*BLOCK_SIZE
 	new:PivotTo(CFrame.new((Vector3.new(position.X+(size.X-1)*.5,position.Y+(size.Y-1)*.5,position.Z+(size.Z-1)*.5)+Vector3.new(chunkPosition.X, chunkPosition.Y, chunkPosition.Z)*CHUNK_SIZE)*BLOCK_SIZE))
-	new.BrickColor = BrickColor.palette(blockId+5)--Color3.fromHSV(math.random(), .3, .8)
+	new.Color = Color3.fromHSV(math.random(), .3, .8) 
+	--new.BrickColor = BrickColor.palette(blockId+5)
 
 	return new
 end
@@ -143,7 +144,7 @@ function ChunkRenderer.renderChunk(chunkPosition: Vector3): ()
 				local potentialExpandY = 0 -- the max we can expand y
 				local confirmedExpandY = 0 -- the minimum we will to expand y
 
-				for length = confirmedExpandX, potentialExpandX do -- try all lengths to expand into
+				for lengthX = confirmedExpandX, potentialExpandX do -- try all lengths to expand into
 					potentialExpandY = 0
 					local Stop = false
 					while y + potentialExpandY < CHUNK_SIZE do -- for each block we try to expand 
@@ -151,7 +152,7 @@ function ChunkRenderer.renderChunk(chunkPosition: Vector3): ()
 
 						local FoundBlock = false
 
-						for i = 0, length do -- check every block along x axis at that length
+						for i = 0, lengthX do -- check every block along x axis at that length
 							if data[x + i][y + potentialExpandY][z] == false then -- hidden blocks are fine
 								continue 
 							end 
@@ -172,7 +173,7 @@ function ChunkRenderer.renderChunk(chunkPosition: Vector3): ()
 						if not FoundBlock then continue end
 						confirmedExpandY = potentialExpandY
 						-- overwrite blocks weve confirmed
-						for i = 0, length do
+						for i = 0, lengthX do
 							if data[x + i][y + potentialExpandY][z] == blockId then
 								data[x + i][y + potentialExpandY][z] = true
 							end
@@ -233,7 +234,7 @@ function ChunkRenderer.renderChunk(chunkPosition: Vector3): ()
 				end
 				
 				local positionInChunk = Vector3.new(x, y, z)
-				
+
 				if confirmedExpandX ~= 0 or confirmedExpandY ~= 0  or confirmedExpandZ ~= 0  then
 					local size = Vector3.new(confirmedExpandX + 1, confirmedExpandY + 1, confirmedExpandZ + 1)
 					local newBlock = createCombinedBlock(blockId, positionInChunk, chunkPosition, size) --TODO other axes
